@@ -26,7 +26,7 @@ namespace rb_rrt_solver{
 
   std::set<cnoid::BodyPtr> getBodies(const std::vector<cnoid::LinkPtr>& links);
 
-  ompl::base::StateSpacePtr createAmbientSpace(const std::vector<cnoid::LinkPtr>& variables);
+  ompl::base::StateSpacePtr createAmbientSpace(const std::vector<cnoid::LinkPtr>& variables, double maxtranslation=1.0);
 
   class DummyProjectionEvaluator : public ompl::base::ProjectionEvaluator {
   public:

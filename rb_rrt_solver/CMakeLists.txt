@@ -36,6 +36,7 @@ endforeach(lib)
 add_library(${PROJECT_NAME}
   src/rb_rrt_solver.cpp
   src/CnoidStateSpace.cpp
+  src/RBRRTStateValidityChecker.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

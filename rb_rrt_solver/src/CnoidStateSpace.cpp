@@ -104,7 +104,7 @@ namespace rb_rrt_solver{
     return bodies;
   }
 
-  ompl::base::StateSpacePtr createAmbientSpace(const std::vector<cnoid::LinkPtr>& variables){
+  ompl::base::StateSpacePtr createAmbientSpace(const std::vector<cnoid::LinkPtr>& variables, double maxtranslation){
     ompl::base::StateSpacePtr ambientSpace = nullptr;
     unsigned int realVectorDim = 0;
     std::vector<double> low, high; // boundが無いとエラーになるので、一応関節角度上下限 or rootLinkの現在地+-1mで与えている
@@ -127,8 +127,8 @@ namespace rb_rrt_solver{
         }
         std::shared_ptr<ompl::base::SE3StateSpace> se3StateSpace = std::make_shared<ompl::base::SE3StateSpace>();
         ompl::base::RealVectorBounds bounds(3);
-        bounds.low = std::vector<double>{variables[i]->p()[0]-1.0,variables[i]->p()[1]-1.0,variables[i]->p()[2]-1.0};
-        bounds.high = std::vector<double>{variables[i]->p()[0]+1.0,variables[i]->p()[1]+1.0,variables[i]->p()[2]+1.0};
+        bounds.low = std::vector<double>{variables[i]->p()[0]-maxtranslation,variables[i]->p()[1]-maxtranslation,variables[i]->p()[2]-maxtranslation};
+        bounds.high = std::vector<double>{variables[i]->p()[0]+maxtranslation,variables[i]->p()[1]+maxtranslation,variables[i]->p()[2]+maxtranslation};
         se3StateSpace->setBounds(bounds);
         se3StateSpace->setStateSamplerAllocator(&allocCnoidCompoundStateSampler); // weightImportanceを常に1にすることで、plannerのrangeに設定した値だけ各関節(rootLink含む)が均等に動くようになる.
         ambientSpace = ambientSpace + se3StateSpace;
