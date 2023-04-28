@@ -1,0 +1,2 @@
+- S. Tonneau, N. Mansard, C. Park, D. Manocha, F. Multon, and J. Pettré, “A reachability-based planner for sequences of acyclic contacts in cluttered environments,” in Int. Symp. Robotics Research (ISRR), (Sestri Levante, Italy), September 2015, 2015.
+- S. Tonneau, A. Del Prete, J. Pettré, C. Park, D. Manocha and N. Mansard, "An Efficient Acyclic Contact Planner for Multiped Robots," in IEEE Transactions on Robotics, vol. 34, no. 3, pp. 586-601, June 2018, doi: 10.1109/TRO.2018.2819658.
