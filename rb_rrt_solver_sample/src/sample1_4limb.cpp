@@ -2,57 +2,74 @@
 #include <cnoid/Body>
 #include <cnoid/BodyLoader>
 #include <cnoid/SceneMarkers>
+#include <cnoid/MeshGenerator>
 #include <iostream>
 #include <ros/package.h>
 
 #include <rb_rrt_solver/rb_rrt_solver.h>
-#include <ik_constraint2/ik_constraint2.h>
+#include <ik_constraint2_vclip/ik_constraint2_vclip.h>
 
 namespace rb_rrt_solver_sample{
   void sample1_4limb(){
-    // load robot
-    std::string modelfile = ros::package::getPath("choreonoid") + "/share/model/SR1/SR1.body";
-    cnoid::BodyLoader bodyLoader;
-    cnoid::BodyPtr robot = bodyLoader.load(modelfile);
-
-    // reset manip pose
-    robot->rootLink()->p() = cnoid::Vector3(0,0,0.6);
-    robot->rootLink()->v().setZero();
-    robot->rootLink()->R() = cnoid::Matrix3::Identity();
-    robot->rootLink()->w().setZero();
-    std::vector<double> reset_manip_pose{
-      0.0, -0.349066, 0.0, 0.820305, -0.471239, 0.0,// rleg
-        0.523599, 0.0, 0.0, -1.74533, 0.15708, -0.113446, 0.637045,// rarm
-        0.0, -0.349066, 0.0, 0.820305, -0.471239, 0.0,// lleg
-        0.523599, 0.0, 0.0, -1.74533, -0.15708, -0.113446, -0.637045,// larm
-        0.0, 0.0, 0.0};
-
-    for(int j=0; j < robot->numJoints(); ++j){
-      robot->joint(j)->q() = reset_manip_pose[j];
+    cnoid::MeshGenerator meshGenerator;
+    cnoid::BodyPtr bigBox = new cnoid::Body();
+    {
+      cnoid::SgShapePtr shape = new cnoid::SgShape();
+      shape->setMesh(meshGenerator.generateBox(cnoid::Vector3(1,1,1)));
+      cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
+      material->setTransparency(0.3);
+      shape->setMaterial(material);
+      cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
+      posTransform->translation() = cnoid::Vector3(0,0,0);
+      posTransform->addChild(shape);
+      cnoid::LinkPtr link = new cnoid::Link();
+      link->setShape(posTransform);
+      bigBox->setRootLink(link);
     }
-    robot->calcForwardKinematics();
-    robot->calcCenterOfMass();
+    cnoid::BodyPtr smallBox = new cnoid::Body();
+    {
+      cnoid::SgShapePtr shape = new cnoid::SgShape();
+      shape->setMesh(meshGenerator.generateBox(cnoid::Vector3(0.4,0.4,0.4)));
+      cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
+      posTransform->translation() = cnoid::Vector3(0,0,0);
+      posTransform->addChild(shape);
+      cnoid::LinkPtr link = new cnoid::Link();
+      link->setShape(posTransform);
+      smallBox->setRootLink(link);
+    }
 
-    std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > > constraints;
+    std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+    {
+      constraint->A_link() = bigBox->rootLink();
+      constraint->B_link() = smallBox->rootLink();
+      constraint->tolerance() = 0.01;
+      constraint->ignoreDistance() = 1e10; // 描画のため
+      constraint->debugLevel() = 2;
+      constraint->updateBounds(); // キャッシュを内部に作る.
+    }
 
     // setup viewer
-    choreonoid_viewer::Viewer viewer;
-    viewer.objects(robot);
+    std::shared_ptr<choreonoid_viewer::Viewer> viewer = std::make_shared<choreonoid_viewer::Viewer>();
+    viewer->objects(bigBox);
+    viewer->objects(smallBox);
 
-    // main loop
-    std::vector<cnoid::SgNodePtr> markers;
-    for(int j=0;j<constraints.size();j++){
-      for(int k=0;k<constraints[j].size(); k++){
-        constraints[j][k]->updateBounds();
-        const std::vector<cnoid::SgNodePtr>& marker = constraints[j][k]->getDrawOnObjects();
+    for(int i=0;i<1000;i++) {
+      smallBox->rootLink()->p()[0] = 1 * std::sin(i * 0.01 * M_PI);
+      smallBox->rootLink()->p()[1] = 1 * std::sin(i * 0.01 * M_PI);
+      smallBox->rootLink()->p()[2] = 1 * std::sin(i * 0.01 * M_PI);
+
+      std::vector<cnoid::SgNodePtr> markers;
+      {
+        constraint->updateBounds();
+        const std::vector<cnoid::SgNodePtr>& marker = constraint->getDrawOnObjects();
         std::copy(marker.begin(), marker.end(), std::back_inserter(markers));
       }
+
+      viewer->drawOn(markers);
+      viewer->drawObjects();
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    viewer.drawOn(markers);
-    viewer.drawObjects();
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
   }
 
 }
