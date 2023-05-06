@@ -34,6 +34,7 @@ endforeach(lib)
 add_library(CnoidRBRRTSolverSamplePlugin SHARED
   src/CnoidRBRRTSolverSamplePlugin.cpp
   src/sample1_4limb.cpp
+  src/sample2_root.cpp
   )
 target_link_libraries(CnoidRBRRTSolverSamplePlugin
   ${catkin_LIBRARIES}
