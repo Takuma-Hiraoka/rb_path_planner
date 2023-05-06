@@ -54,9 +54,7 @@ namespace rb_rrt_solver{
       (*it)->calcCenterOfMass();
     }
 
-    for(int i=0;i<horizontals_[m].size();i++){
-      horizontals_[m][i].second->R() = orientCoordToAxis(horizontals_[m][i].first->R(), cnoid::Vector3::UnitZ());
-    }
+    calcHorizontal(horizontals_[m]);
     for(std::set<cnoid::BodyPtr>::const_iterator it=bodiesHorizontal_[m].begin(); it != bodiesHorizontal_[m].end(); it++){
       (*it)->calcForwardKinematics(false); // 疎な軌道生成なので、velocityはチェックしない
       (*it)->calcCenterOfMass();

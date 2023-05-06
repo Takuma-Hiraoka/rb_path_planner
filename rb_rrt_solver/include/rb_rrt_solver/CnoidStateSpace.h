@@ -64,6 +64,7 @@ namespace rb_rrt_solver{
   // axisとlocalaxisがピッタリ180反対向きの場合、回転方向が定まらないので不安定
   Eigen::Matrix3d orientCoordToAxis(const Eigen::Matrix3d& m, const Eigen::Vector3d& axis, const Eigen::Vector3d& localaxis = Eigen::Vector3d::UnitZ());
   Eigen::Transform<double, 3, Eigen::AffineCompact> orientCoordToAxis(const Eigen::Transform<double, 3, Eigen::AffineCompact>& m, const Eigen::Vector3d& axis, const Eigen::Vector3d& localaxis = Eigen::Vector3d::UnitZ());
+  void calcHorizontal(const std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& horizontals);
 };
 
 #endif

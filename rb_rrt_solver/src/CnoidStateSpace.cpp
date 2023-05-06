@@ -212,5 +212,10 @@ namespace rb_rrt_solver{
     return ret;
   }
 
+  void calcHorizontal(const std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& horizontals){
+    for(int i=0;i<horizontals.size();i++){
+      horizontals[i].second->T() = orientCoordToAxis(horizontals[i].first->T(), cnoid::Vector3::UnitZ());
+    }
+  }
 };
 
