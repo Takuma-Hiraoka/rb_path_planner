@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>rb_rrt_solver_sample</name>
+  <version>0.0.0</version>
+  <description>The rb_rrt_solver_sample package</description>
+
+  <maintainer email="hiraoka@jsk.imi.i.u-tokyo.ac.jp">Naoki-Hiraoka</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>ik_constraint2</depend>
+  <depend>ik_constraint2_vclip</depend>
+  <depend>ik_constraint2_distance_field</depend>
+  <depend>rb_rrt_solver</depend>
+  <depend>prioritized_inverse_kinematics_solver2_sample</depend> <!-- choreonoid起動時に全てのプラグインを自動でロードしてしまうので、依存先のライブラリに更新があった場合、それに依存する全てのプラグインをビルドし直さないと、Choreonoidのクラッシュを引き起こす等の問題を起こすことがある https://choreonoid.org/ja/manuals/latest/basics/plugin.html -->
+  <depend>choreonoid_viewer</depend>
+
+</package>
