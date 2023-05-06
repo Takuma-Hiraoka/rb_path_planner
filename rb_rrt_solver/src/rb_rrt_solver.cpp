@@ -115,17 +115,6 @@ namespace rb_rrt_solver{
         OMPL_INFORM("No solution found after %f seconds", planTime);
     }
 
-    // goal stateをvariablesに反映して返す.
-    if(problemDefinition->hasSolution()) {
-      const ompl::geometric::PathGeometricPtr solutionPath = std::dynamic_pointer_cast<ompl::geometric::PathGeometric>(problemDefinition->getSolutionPath());
-      state2Link(stateSpace, solutionPath->getState(solutionPath->getStateCount()-1), variables[0]);
-      std::set<cnoid::BodyPtr> bodies = getBodies(variables[0]);
-      for(std::set<cnoid::BodyPtr>::const_iterator it=bodies.begin(); it != bodies.end(); it++){
-        (*it)->calcForwardKinematics(false); // 疎な軌道生成なので、velocityはチェックしない
-        (*it)->calcCenterOfMass();
-      }
-    }
-
     if(path != nullptr){
       ompl::geometric::PathGeometricPtr solutionPath = std::dynamic_pointer_cast<ompl::geometric::PathGeometric>(problemDefinition->getSolutionPath());
       if(solutionPath == nullptr) {
@@ -162,6 +151,17 @@ namespace rb_rrt_solver{
           //stateSpace->getDimension()は,SO3StateSpaceが3を返してしまう(実際はquaternionで4)ので、使えない
           state2Frame(stateSpace, solutionPath->getState(j), path->at(j));
         }
+      }
+    }
+
+    // goal stateをvariablesに反映して返す.
+    if(problemDefinition->hasSolution()) {
+      const ompl::geometric::PathGeometricPtr solutionPath = std::dynamic_pointer_cast<ompl::geometric::PathGeometric>(problemDefinition->getSolutionPath());
+      state2Link(stateSpace, solutionPath->getState(solutionPath->getStateCount()-1), variables[0]);
+      std::set<cnoid::BodyPtr> bodies = getBodies(variables[0]);
+      for(std::set<cnoid::BodyPtr>::const_iterator it=bodies.begin(); it != bodies.end(); it++){
+        (*it)->calcForwardKinematics(false); // 疎な軌道生成なので、velocityはチェックしない
+        (*it)->calcCenterOfMass();
       }
     }
 
