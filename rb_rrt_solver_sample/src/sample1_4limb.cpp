@@ -22,8 +22,10 @@ namespace rb_rrt_solver_sample{
       cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
       posTransform->translation() = cnoid::Vector3(0,0,0);
       posTransform->addChild(shape);
+      cnoid::SgGroupPtr group = new cnoid::SgGroup();
+      group->addChild(posTransform);
       cnoid::LinkPtr link = new cnoid::Link();
-      link->setShape(posTransform);
+      link->setShape(group);
       bigBox->setRootLink(link);
     }
     cnoid::BodyPtr smallBox = new cnoid::Body();
@@ -33,8 +35,10 @@ namespace rb_rrt_solver_sample{
       cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
       posTransform->translation() = cnoid::Vector3(0,0,0);
       posTransform->addChild(shape);
+      cnoid::SgGroupPtr group = new cnoid::SgGroup();
+      group->addChild(posTransform);
       cnoid::LinkPtr link = new cnoid::Link();
-      link->setShape(posTransform);
+      link->setShape(group);
       smallBox->setRootLink(link);
     }
 
