@@ -2,7 +2,49 @@
 #include <ompl/base/SpaceInformation.h>
 
 namespace rb_rrt_solver{
-
+  bool ConditionAND::isValid() const {
+    for(int i=0;i<children.size();i++){
+      if(!children[i]->isValid()) return false;
+    }
+    return true;
+  }
+  std::shared_ptr<Condition> ConditionAND::clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    std::shared_ptr<ConditionAND> ret = std::make_shared<ConditionAND>();
+    for(int i=0;i<children.size();i++){
+      ret->children.push_back(children[i]->clone(modelMap));
+    }
+    return ret;
+  }
+  bool ConditionOR::isValid() const {
+    for(int i=0;i<children.size();i++){
+      if(children[i]->isValid()) return true;
+    }
+    return children.size()==0;
+  }
+  std::shared_ptr<Condition> ConditionOR::clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    std::shared_ptr<ConditionOR> ret = std::make_shared<ConditionOR>();
+    for(int i=0;i<children.size();i++){
+      ret->children.push_back(children[i]->clone(modelMap));
+    }
+    return ret;
+  }
+  bool ConditionNOT::isValid() const {
+    return !child->isValid();
+  }
+  std::shared_ptr<Condition> ConditionNOT::clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    std::shared_ptr<ConditionNOT> ret = std::make_shared<ConditionNOT>();
+    ret->child = child->clone(modelMap);
+    return ret;
+  }
+  bool ConditionConstraint::isValid() const {
+    constraint->updateBounds();
+    return constraint->isSatisfied();
+  }
+  std::shared_ptr<Condition> ConditionConstraint::clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    std::shared_ptr<ConditionConstraint> ret = std::make_shared<ConditionConstraint>();
+    ret->constraint = constraint->clone(modelMap);
+    return ret;
+  }
   bool RBRRTStateValidityChecker::isValid(const ompl::base::State *state) const {
     const unsigned int m = modelQueue_->pop();
     state2Link(si_->getStateSpace(), state, variables_[m]); // spaceとstateの空間をそろえる
@@ -12,41 +54,19 @@ namespace rb_rrt_solver{
       (*it)->calcCenterOfMass();
     }
 
-    bool satisfied = true;
-    for(size_t i=0;i<constraints_[m].size();i++){
-      constraints_[m][i]->updateBounds();
-      if(!constraints_[m][i]->isSatisfied()) {
-        if(viewer_ == nullptr || m!=0) {
-          modelQueue_->push(m);
-          return false;
-        }
-        satisfied = false;
-      }
+    for(int i=0;i<horizontals_[m].size();i++){
+      horizontals_[m][i].second->R() = orientCoordToAxis(horizontals_[m][i].first->R(), cnoid::Vector3::UnitZ());
     }
-    for(size_t i=0;i<inverseConstraints_[m].size();i++){
-      inverseConstraints_[m][i]->updateBounds();
-      if(inverseConstraints_[m][i]->isSatisfied()) {
-        if(viewer_ == nullptr || m!=0) {
-          modelQueue_->push(m);
-          return false;
-        }
-        satisfied = false;
-      }
+    for(std::set<cnoid::BodyPtr>::const_iterator it=bodiesHorizontal_[m].begin(); it != bodiesHorizontal_[m].end(); it++){
+      (*it)->calcForwardKinematics(false); // 疎な軌道生成なので、velocityはチェックしない
+      (*it)->calcCenterOfMass();
     }
+
+    bool satisfied = condition_[m]->isValid();
 
     if(viewer_ != nullptr && m==0){
       loopCount_++;
       if(loopCount_%drawLoop_==0){
-        std::vector<cnoid::SgNodePtr> markers;
-        for(int j=0;j<constraints_[m].size();j++){
-          const std::vector<cnoid::SgNodePtr>& marker = constraints_[m][j]->getDrawOnObjects();
-          std::copy(marker.begin(), marker.end(), std::back_inserter(markers));
-        }
-        for(int j=0;j<inverseConstraints_[m].size();j++){
-          const std::vector<cnoid::SgNodePtr>& marker = inverseConstraints_[m][j]->getDrawOnObjects();
-          std::copy(marker.begin(), marker.end(), std::back_inserter(markers));
-        }
-        viewer_->drawOn(markers);
         viewer_->drawObjects(true);
       }
     }

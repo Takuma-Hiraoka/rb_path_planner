@@ -24,8 +24,8 @@ namespace rb_rrt_solver{
 
 
   bool solveRBRRT(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
-                  const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& constraints, // 0: constraints
-                  const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& inverseConstraints, // 0: constraints
+                  const std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& horizontals, // 0: variables
+                  const std::shared_ptr<Condition>& condition,
                   const std::vector<double>& goal, // 0: angles
                   std::shared_ptr<std::vector<std::vector<double> > > path = nullptr, // 0: states. 1: angles
                   const RBRRTParam& param = RBRRTParam()
@@ -33,8 +33,8 @@ namespace rb_rrt_solver{
 
 
   bool solveRBRRT(const std::vector<std::vector<cnoid::LinkPtr> >& variables, // 0: modelQueue, 1: variables
-                  const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& constraints, // 0: modelQueue, 1: constraints
-                  const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& inverseConstraints, // 0: modelQueue, 1: constraints
+                  const std::vector<std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> > >& horizontals, // 0: modelQueue, 1: horizontals
+                  const std::vector<std::shared_ptr<Condition> >& condition, // 0: modelQueue
                   const std::vector<double>& goal, // 0: angles
                   std::shared_ptr<UintQueue> modelQueue,
                   std::shared_ptr<std::vector<std::vector<double> > > path, // 0: states. 1: angles

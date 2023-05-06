@@ -25,6 +25,7 @@ namespace rb_rrt_solver{
   void link2Frame(const std::vector<cnoid::LinkPtr>& links, std::vector<double>& frame);
 
   std::set<cnoid::BodyPtr> getBodies(const std::vector<cnoid::LinkPtr>& links);
+  std::set<cnoid::BodyPtr> getBodies(const std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& links);
 
   ompl::base::StateSpacePtr createAmbientSpace(const std::vector<cnoid::LinkPtr>& variables, double maxtranslation=1.0);
 
@@ -58,6 +59,11 @@ namespace rb_rrt_solver{
   };
 
   ompl::base::StateSamplerPtr allocCnoidCompoundStateSampler(const ompl::base::StateSpace *space);
+
+  // axisとlocalaxisはノルムが1, mは回転行列でなければならない.
+  // axisとlocalaxisがピッタリ180反対向きの場合、回転方向が定まらないので不安定
+  Eigen::Matrix3d orientCoordToAxis(const Eigen::Matrix3d& m, const Eigen::Vector3d& axis, const Eigen::Vector3d& localaxis = Eigen::Vector3d::UnitZ());
+  Eigen::Transform<double, 3, Eigen::AffineCompact> orientCoordToAxis(const Eigen::Transform<double, 3, Eigen::AffineCompact>& m, const Eigen::Vector3d& axis, const Eigen::Vector3d& localaxis = Eigen::Vector3d::UnitZ());
 };
 
 #endif

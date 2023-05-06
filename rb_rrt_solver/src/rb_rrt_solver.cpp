@@ -8,15 +8,15 @@
 namespace rb_rrt_solver{
 
   bool solveRBRRT(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
-                  const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& constraints, // 0: constraints
-                  const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& inverseConstraints, // 0: constraints
+                  const std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& horizontals, // 0: variables
+                  const std::shared_ptr<Condition>& condition,
                   const std::vector<double>& goal, // 0: angles.
                   std::shared_ptr<std::vector<std::vector<double> > > path, // 0: states. 1: angles
                   const RBRRTParam& param
                   ){
     std::vector<std::vector<cnoid::LinkPtr> > variabless{variables};
-    std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > > constraintss{constraints};
-    std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > > inverseConstraintss{inverseConstraints};
+    std::vector<std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> > > horizontalss{horizontals};
+    std::vector<std::shared_ptr<Condition> > conditions{condition};
     std::shared_ptr<UintQueue> modelQueue = std::make_shared<UintQueue>();
     modelQueue->push(0);
 
@@ -32,20 +32,18 @@ namespace rb_rrt_solver{
         for(int v=0;v<variables.size();v++){
           variabless.back()[v] = modelMap[variables[v]->body()]->link(variables[v]->index());
         }
-        constraintss.push_back(std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >(constraints.size()));
-        for(int j=0;j<constraints.size();j++){
-          constraintss.back()[j] = constraints[j]->clone(modelMap);
+        horizontalss.push_back(std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >(horizontals.size()));
+        for(int v=0;v<horizontals.size();v++){
+          horizontalss.back()[v].first = modelMap[horizontals[v].first->body()]->link(horizontals[v].first->index());
+          horizontalss.back()[v].second = modelMap[horizontals[v].second->body()]->link(horizontals[v].second->index());
         }
-        inverseConstraintss.push_back(std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >(inverseConstraints.size()));
-        for(int j=0;j<inverseConstraints.size();j++){
-          inverseConstraintss.back()[j] = inverseConstraints[j]->clone(modelMap);
-        }
+        conditions.push_back(condition->clone(modelMap));
       }
     }
 
     return solveRBRRT(variabless,
-                      constraintss,
-                      inverseConstraintss,
+                      horizontalss,
+                      conditions,
                       goal,
                       modelQueue,
                       path,
@@ -55,16 +53,16 @@ namespace rb_rrt_solver{
 
 
   bool solveRBRRT(const std::vector<std::vector<cnoid::LinkPtr> >& variables, // 0: modelQueue, 1: variables
-                  const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& constraints, // 0: modelQueue, 1: constraints
-                  const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& inverseConstraints, // 0: modelQueue, 1: constraints
+                  const std::vector<std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> > >& horizontals, // 0: modelQueue, 1: horizontals
+                  const std::vector<std::shared_ptr<Condition> >& condition,
                   const std::vector<double>& goal, // 0: angles
                   std::shared_ptr<UintQueue> modelQueue,
                   std::shared_ptr<std::vector<std::vector<double> > > path, // 0: states. 1: angles
                   const RBRRTParam& param
                   ){
     if((variables.size() == 0) ||
-       (variables.size() != constraints.size()) ||
-       (constraints.size() != inverseConstraints.size())
+       (variables.size() != horizontals.size()) ||
+       (variables.size() != condition.size())
        ){
       std::cerr << "[solveRBRRT] size mismatch" << std::endl;
       return false;
@@ -75,9 +73,9 @@ namespace rb_rrt_solver{
     spaceInformation->setStateValidityCheckingResolution(param.stateValidityCheckingResolution);
     RBRRTStateValidityCheckerPtr stateValidityChecker = std::make_shared<RBRRTStateValidityChecker>(spaceInformation,
                                                                                                     modelQueue,
-                                                                                                    constraints,
-                                                                                                    inverseConstraints,
-                                                                                                    variables);
+                                                                                                    condition,
+                                                                                                    variables,
+                                                                                                    horizontals);
     stateValidityChecker->viewer() = param.viewer;
     stateValidityChecker->drawLoop() = param.drawLoop;
 

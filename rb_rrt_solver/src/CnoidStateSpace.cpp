@@ -104,6 +104,14 @@ namespace rb_rrt_solver{
     return bodies;
   }
 
+  std::set<cnoid::BodyPtr> getBodies(const std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& links){
+    std::set<cnoid::BodyPtr> bodies;
+    for(size_t i=0;i<links.size();i++){
+      if(links[i].second->body()) bodies.insert(links[i].second->body());
+    }
+    return bodies;
+  }
+
   ompl::base::StateSpacePtr createAmbientSpace(const std::vector<cnoid::LinkPtr>& variables, double maxtranslation){
     ompl::base::StateSpacePtr ambientSpace = nullptr;
     unsigned int realVectorDim = 0;
@@ -179,6 +187,29 @@ namespace rb_rrt_solver{
     for (unsigned int i = 0; i < space->as<ompl::base::CompoundStateSpace>()->getSubspaceCount(); ++i)
       ss->addSampler(space->as<ompl::base::CompoundStateSpace>()->getSubspace(i)->allocStateSampler(), 1.0/*weights_[i] / weightSum_*/);
     return ss;
+  }
+
+  Eigen::Matrix3d orientCoordToAxis(const Eigen::Matrix3d& m, const Eigen::Vector3d& axis, const Eigen::Vector3d& localaxis){
+    // axisとlocalaxisはノルムが1, mは回転行列でなければならない.
+    // axisとlocalaxisがピッタリ180反対向きの場合、回転方向が定まらないので不安定
+    Eigen::AngleAxisd m_ = Eigen::AngleAxisd(m); // Eigen::Matrix3dの空間で積算していると数値誤差によってだんたん回転行列ではなくなってくるので
+    Eigen::Vector3d localaxisdir = m_ * localaxis;
+    Eigen::Vector3d cross = localaxisdir.cross(axis);
+    double dot = std::min(1.0,std::max(-1.0,localaxisdir.dot(axis))); // acosは定義域外のときnanを返す
+    if(cross.norm()==0){
+      if(dot == -1) return Eigen::Matrix3d(-m);
+      else return Eigen::Matrix3d(m_);
+    }else{
+      double angle = std::acos(dot); // 0~pi
+      Eigen::Vector3d axis = cross.normalized(); // include sign
+      return Eigen::Matrix3d(Eigen::AngleAxisd(angle, axis) * m_);
+    }
+  }
+
+  Eigen::Transform<double, 3, Eigen::AffineCompact> orientCoordToAxis(const Eigen::Transform<double, 3, Eigen::AffineCompact>& m, const Eigen::Vector3d& axis, const Eigen::Vector3d& localaxis){
+    Eigen::Transform<double, 3, Eigen::AffineCompact> ret = m;
+    ret.linear() = orientCoordToAxis(ret.linear(), axis, localaxis);
+    return ret;
   }
 
 };
