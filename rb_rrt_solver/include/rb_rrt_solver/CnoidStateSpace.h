@@ -60,6 +60,17 @@ namespace rb_rrt_solver{
 
   ompl::base::StateSamplerPtr allocCnoidCompoundStateSampler(const ompl::base::StateSpace *space);
 
+  class SO3RootStateSampler : public ompl::base::SO3StateSampler
+  {
+  public:
+    /** \brief Constructor */
+    SO3RootStateSampler(const ompl::base::StateSpace *space) : SO3StateSampler(space) {}
+    void sampleUniform(ompl::base::State *state) override;
+  };
+
+  ompl::base::StateSamplerPtr allocRootStateSampler(const ompl::base::StateSpace *space);
+
+
   // axisとlocalaxisはノルムが1, mは回転行列でなければならない.
   // axisとlocalaxisがピッタリ180反対向きの場合、回転方向が定まらないので不安定
   Eigen::Matrix3d orientCoordToAxis(const Eigen::Matrix3d& m, const Eigen::Vector3d& axis, const Eigen::Vector3d& localaxis = Eigen::Vector3d::UnitZ());

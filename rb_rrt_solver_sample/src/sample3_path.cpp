@@ -43,7 +43,7 @@ namespace rb_rrt_solver_sample{
           material->setTransparency(0);
           shape->setMaterial(material);
           cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-          posTransform->translation() = cnoid::Vector3(1,0,0.45);
+          posTransform->translation() = cnoid::Vector3(1,0,0.35);
           posTransform->addChild(shape);
           group->addChild(posTransform);
         }
@@ -120,7 +120,7 @@ namespace rb_rrt_solver_sample{
           material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
           shape->setMaterial(material);
           cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-          posTransform->translation() = cnoid::Vector3(1.0,0,0.5);
+          posTransform->translation() = cnoid::Vector3(1.0,0,0.4);
           posTransform->addChild(shape);
           group->addChild(posTransform);
         }
@@ -260,7 +260,7 @@ namespace rb_rrt_solver_sample{
     std::vector<double> goal;
     {
       cnoid::Position org = abstractRobot->rootLink()->T();
-      abstractRobot->rootLink()->translation() += cnoid::Vector3(1.0,0.0,0.5);
+      abstractRobot->rootLink()->translation() += cnoid::Vector3(1.0,0.0,0.4);
       rb_rrt_solver::link2Frame(variables, goal);
       abstractRobot->rootLink()->T() = org;
     }

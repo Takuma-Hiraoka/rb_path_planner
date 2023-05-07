@@ -138,7 +138,7 @@ namespace rb_rrt_solver{
         bounds.low = std::vector<double>{variables[i]->p()[0]-maxtranslation,variables[i]->p()[1]-maxtranslation,variables[i]->p()[2]-maxtranslation};
         bounds.high = std::vector<double>{variables[i]->p()[0]+maxtranslation,variables[i]->p()[1]+maxtranslation,variables[i]->p()[2]+maxtranslation};
         se3StateSpace->setBounds(bounds);
-        se3StateSpace->setStateSamplerAllocator(&allocCnoidCompoundStateSampler); // weightImportanceを常に1にすることで、plannerのrangeに設定した値だけ各関節(rootLink含む)が均等に動くようになる.
+        se3StateSpace->setStateSamplerAllocator(&allocRootStateSampler); // weightImportanceを常に1にすることで、plannerのrangeに設定した値だけ各関節(rootLink含む)が均等に動くようになる. & roll, pitchの回転を制限
         ambientSpace = ambientSpace + se3StateSpace;
       }
     }
@@ -158,7 +158,7 @@ namespace rb_rrt_solver{
       ambientSpace = std::make_shared<ompl::base::RealVectorStateSpace>(0);
     }
 
-    ambientSpace->setStateSamplerAllocator(&allocCnoidCompoundStateSampler); // weightImportanceを常に1にすることで、plannerのrangeに設定した値だけ各関節(rootLink含む)が均等に動くようになる.
+    ambientSpace->setStateSamplerAllocator(&allocRootStateSampler); // weightImportanceを常に1にすることで、plannerのrangeに設定した値だけ各関節(rootLink含む)が均等に動くようになる. & roll, pitchの回転を制限
     ambientSpace->registerDefaultProjection(std::make_shared<DummyProjectionEvaluator>(ambientSpace)); // WrapperStateSpace::setup()のときに、ambientSpaceのdefaultProjectionが無いとエラーになる. CompoundStateSpaceにはDefaultProjectionが無いので、とりあえず適当に与えておく
 
     return ambientSpace;
@@ -186,6 +186,28 @@ namespace rb_rrt_solver{
     auto ss(std::make_shared<ompl::base::CompoundStateSampler>(space));
     for (unsigned int i = 0; i < space->as<ompl::base::CompoundStateSpace>()->getSubspaceCount(); ++i)
       ss->addSampler(space->as<ompl::base::CompoundStateSpace>()->getSubspace(i)->allocStateSampler(), 1.0/*weights_[i] / weightSum_*/);
+    return ss;
+  }
+
+  void SO3RootStateSampler::sampleUniform(ompl::base::State *state) {
+    double y = rng_.uniformReal(-M_PI, M_PI);
+    double p = rng_.uniformReal(0, M_PI/2);
+    Eigen::Quaterniond q = Eigen::AngleAxisd(y, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(p, Eigen::Vector3d::UnitY());
+    state->as<ompl::base::SO3StateSpace::StateType>()->x = q.x();
+    state->as<ompl::base::SO3StateSpace::StateType>()->y = q.y();
+    state->as<ompl::base::SO3StateSpace::StateType>()->z = q.z();
+    state->as<ompl::base::SO3StateSpace::StateType>()->w = q.w();
+  }
+
+  ompl::base::StateSamplerPtr allocRootStateSampler(const ompl::base::StateSpace *space) {
+    auto ss(std::make_shared<ompl::base::CompoundStateSampler>(space));
+    for (unsigned int i = 0; i < space->as<ompl::base::CompoundStateSpace>()->getSubspaceCount(); ++i) {
+      if(std::dynamic_pointer_cast<ompl::base::SO3StateSpace>(space->as<ompl::base::CompoundStateSpace>()->getSubspace(i))){
+        ss->addSampler(std::make_shared<SO3RootStateSampler>(space->as<ompl::base::CompoundStateSpace>()->getSubspace(i).get()), 1.0);
+      }else{
+        ss->addSampler(space->as<ompl::base::CompoundStateSpace>()->getSubspace(i)->allocStateSampler(), 1.0/*weights_[i] / weightSum_*/);
+      }
+    }
     return ss;
   }
 
