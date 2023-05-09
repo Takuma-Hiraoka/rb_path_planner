@@ -23,6 +23,8 @@ namespace multicontact_locomotion_planner{
   void frame2State(const std::vector<double>& frame, const ompl::base::StateSpace* space, ompl::base::State *state);
   void frame2Link(const std::vector<double>& frame, const std::vector<cnoid::LinkPtr>& links);
   void link2Frame(const std::vector<cnoid::LinkPtr>& links, std::vector<double>& frame);
+  void frame2Body(const std::vector<double>& frame, const cnoid::BodyPtr& body);
+  void body2Frame(const cnoid::BodyPtr& body, std::vector<double>& frame);
 
   std::set<cnoid::BodyPtr> getBodies(const std::vector<cnoid::LinkPtr>& links);
   std::set<cnoid::BodyPtr> getBodies(const std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& links);

@@ -7,165 +7,148 @@
 
 namespace multicontact_locomotion_planner{
 
-  bool solveRBRRT(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
-                  const std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& horizontals, // 0: variables
-                  const std::shared_ptr<Condition>& condition,
-                  const std::vector<double>& goal, // 0: angles.
-                  std::shared_ptr<std::vector<std::vector<double> > > path, // 0: states. 1: angles
-                  const RBRRTParam& param
-                  ){
-    std::vector<std::vector<cnoid::LinkPtr> > variabless{variables};
-    std::vector<std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> > > horizontalss{horizontals};
-    std::vector<std::shared_ptr<Condition> > conditions{condition};
-    std::shared_ptr<UintQueue> modelQueue = std::make_shared<UintQueue>();
-    modelQueue->push(0);
+  bool solveMLP(const cnoid::BodyPtr currentRobot,
+                const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
+                const std::string& prevSwingEEF,
+                const std::vector<std::pair<std::vector<double>, std::string> >& targetRootPath, // angle, mode
+                const std::vector<cnoid::LinkPtr>& variables, // 0: variables
+                std::vector<RobotState>& outputPath, // variablesの次元に対応
 
-    if(param.threads >= 2){
-      std::set<cnoid::BodyPtr> bodies = getBodies(variables);
-      for(int i=1;i<param.threads;i++){
-        modelQueue->push(i);
-        std::map<cnoid::BodyPtr, cnoid::BodyPtr> modelMap;
-        for(std::set<cnoid::BodyPtr>::iterator it = bodies.begin(); it != bodies.end(); it++){
-          modelMap[*it] = (*it)->clone();
-        }
-        variabless.push_back(std::vector<cnoid::LinkPtr>(variables.size()));
-        for(int v=0;v<variables.size();v++){
-          variabless.back()[v] = modelMap[variables[v]->body()]->link(variables[v]->index());
-        }
-        horizontalss.push_back(std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >(horizontals.size()));
-        for(int v=0;v<horizontals.size();v++){
-          horizontalss.back()[v].first = modelMap[horizontals[v].first->body()]->link(horizontals[v].first->index());
-          horizontalss.back()[v].second = modelMap[horizontals[v].second->body()]->link(horizontals[v].second->index());
-        }
-        conditions.push_back(condition->clone(modelMap));
+                const MLPParam& param){
+
+    std::vector<double> currentAngle;
+    body2Frame(currentRobot, currentAngle);
+
+    // // 今のjoint angle, contact stateから、今のmodeを把握する
+    // //   各mode - 1なら、そのmodeのbreak直後とみなせる. 各mode間が2以上離れているので、重複はない.
+    // std::shared_ptr<Mode> currentMode = nullptr;
+    // for(std::unordered_map<std::string, std::shared_ptr<Mode> >::const_iterator it=param.modes.begin(); it!=param.modes.end();it++){
+    //   if(it->second->isBelongTo(currentState)) {
+    //     currentMode = it->second;
+    //     break;
+    //   }
+    // }
+    // if(!currentMode){
+    //   std::cerr << "[" << __FUNCTION__ << "] current mode is not found" << std::endl;
+    //   return false;
+    // }
+
+    // 今のroot位置から、target root pathのsubgoal点を見つける.
+    int subGoalIdx = -1;
+    bool subGoalFound = false;
+    for(int i=targetRootPath.size()-1;i>=0;i--){
+      cnoid::Vector3 targetp(targetRootPath[i].first[0],targetRootPath[i].first[1],targetRootPath[i].first[2]);
+      cnoid::Quaternion targetR(targetRootPath[i].first[6],
+                                targetRootPath[i].first[3],
+                                targetRootPath[i].first[4],
+                                targetRootPath[i].first[5]);
+      double dist = std::sqrt((currentRobot->rootLink()->p()-targetp).squaredNorm() + std::pow(cnoid::AngleAxis(currentRobot->rootLink()->R().transpose()*targetR).angle(),2));
+      if(dist <= param.subGoalDistance) {
+        subGoalIdx = i;
+        subGoalFound = true;
       }
     }
-
-    return solveRBRRT(variabless,
-                      horizontalss,
-                      conditions,
-                      goal,
-                      modelQueue,
-                      path,
-                      param);
-
-  }
-
-
-  bool solveRBRRT(const std::vector<std::vector<cnoid::LinkPtr> >& variables, // 0: modelQueue, 1: variables
-                  const std::vector<std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> > >& horizontals, // 0: modelQueue, 1: horizontals
-                  const std::vector<std::shared_ptr<Condition> >& condition,
-                  const std::vector<double>& goal, // 0: angles
-                  std::shared_ptr<UintQueue> modelQueue,
-                  std::shared_ptr<std::vector<std::vector<double> > > path, // 0: states. 1: angles
-                  const RBRRTParam& param
-                  ){
-    if((variables.size() == 0) ||
-       (variables.size() != horizontals.size()) ||
-       (variables.size() != condition.size())
-       ){
-      std::cerr << "[solveRBRRT] size mismatch" << std::endl;
+    if(!subGoalFound){
+      std::cerr << "[" << __FUNCTION__ << "] subGoal is not found" << std::endl;
       return false;
     }
 
-    ompl::base::StateSpacePtr stateSpace = createAmbientSpace(variables[0], param.maxTranslation);
-    ompl::base::SpaceInformationPtr spaceInformation = std::make_shared<ompl::base::SpaceInformation>(stateSpace);
-    spaceInformation->setStateValidityCheckingResolution(param.stateValidityCheckingResolution);
-    RBRRTStateValidityCheckerPtr stateValidityChecker = std::make_shared<RBRRTStateValidityChecker>(spaceInformation,
-                                                                                                    modelQueue,
-                                                                                                    condition,
-                                                                                                    variables,
-                                                                                                    horizontals);
-    stateValidityChecker->viewer() = param.viewer;
-    stateValidityChecker->drawLoop() = param.drawLoop;
-
-    spaceInformation->setStateValidityChecker(stateValidityChecker);
-    spaceInformation->setup(); // ここでsetupを呼ばないと、stateSpaceがsetupされないのでlink2State等ができない
-
-    ompl::base::ProblemDefinitionPtr problemDefinition = std::make_shared<ompl::base::ProblemDefinition>(spaceInformation);
-    ompl::base::ScopedState<> startState(stateSpace);
-    link2State(variables[0], stateSpace, startState.get());
-    problemDefinition->clearStartStates();
-    problemDefinition->addStartState(startState);
-    ompl::base::ScopedState<> goalState(stateSpace);
-    frame2State(goal, stateSpace, goalState.get());
-    problemDefinition->setGoalState(goalState);
-
-    ompl::base::PlannerPtr planner;
-    {
-      std::shared_ptr<ompl::geometric::RRTConnect> planner_ = std::make_shared<ompl::geometric::RRTConnect>(spaceInformation, false);
-      planner_->setRange(param.range);
-      planner = planner_;
+    // 今のままsubgoalに到達しないか見る. するならrootを動かして終わり. (angle-vectorが出てくる.)
+    std::shared_ptr<std::vector<std::vector<double> > > path = std::make_shared<std::vector<std::vector<double> > >();
+    if(solveRootIK(variables,
+                   targetRootPath[subGoalIdx].first,
+                   path
+                   )){
+      outputPath.resize(path->size());
+      for(int i=0;i<path->size();i++){
+        outputPath[i].jointAngle = path->at(i);
+        outputPath[i].contacts = currentContacts;
+      }
+      return true;
     }
 
-    if(!spaceInformation->isSetup()) spaceInformation->setup();
-    planner->setProblemDefinition(problemDefinition);
-    if(!planner->isSetup()) planner->setup();
 
-    ompl::base::PlannerStatus solved;
-    {
-      ompl::time::point start = ompl::time::now();
-      solved = planner->solve(param.timeout);
-      double planTime = ompl::time::seconds(ompl::time::now() - start);
-      if (solved == ompl::base::PlannerStatus::EXACT_SOLUTION)
-        OMPL_INFORM("Solution found in %f seconds", planTime);
-      else
-        OMPL_INFORM("No solution found after %f seconds", planTime);
+    // 再度今のroot位置から、target root pathのsubgoal点を見つける. (subGoalが前回のiterationよりも前に進んでいることが期待される)
+    subGoalIdx = -1;
+    subGoalFound = false;
+    for(int i=targetRootPath.size()-1;i>=0;i--){
+      cnoid::Vector3 targetp(targetRootPath[i].first[0],targetRootPath[i].first[1],targetRootPath[i].first[2]);
+      cnoid::Quaternion targetR(targetRootPath[i].first[6],
+                                targetRootPath[i].first[3],
+                                targetRootPath[i].first[4],
+                                targetRootPath[i].first[5]);
+      double dist = std::sqrt((currentRobot->rootLink()->p()-targetp).squaredNorm() + std::pow(cnoid::AngleAxis(currentRobot->rootLink()->R().transpose()*targetR).angle(),2));
+      if(dist <= param.subGoalDistance) {
+        subGoalIdx = i;
+        subGoalFound = true;
+      }
+    }
+    if(!subGoalFound){
+      std::cerr << "[" << __FUNCTION__ << "] new subGoal is not found" << std::endl;
+      frame2Body(currentAngle, currentRobot);
+      return false;
     }
 
-    if(path != nullptr){
-      ompl::geometric::PathGeometricPtr solutionPath = std::dynamic_pointer_cast<ompl::geometric::PathGeometric>(problemDefinition->getSolutionPath());
-      if(solutionPath == nullptr) {
-        path->resize(0);
-      }else{
-        if(param.debugLevel > 1){
-          solutionPath->print(std::cout);
-        }
+    std::shared_ptr<Mode> targetMode = param.modes.find(targetRootPath[subGoalIdx].second)->second;
 
-        ompl::geometric::PathSimplifierPtr pathSimplifier = std::make_shared<ompl::geometric::PathSimplifier>(spaceInformation);
-        {
-          ompl::time::point start = ompl::time::now();
-          std::size_t numStates = solutionPath->getStateCount();
-          stateValidityChecker->viewer() = nullptr; // simplifySolution()中は描画しない
-          pathSimplifier->simplify(*solutionPath, param.timeout);
-          stateValidityChecker->viewer() = param.viewer; // simplifySolution()中は描画しない
-          double simplifyTime = ompl::time::seconds(ompl::time::now() - start);
-          OMPL_INFORM("Path simplification took %f seconds and changed from %d to %d states",
-                      simplifyTime, numStates, solutionPath->getStateCount());
+    // 次にswingするeefを決める
+    //   まず、targetModeにあって、currentContactsに無いEEFを探して、makeさせる. このとき、同一limbに別のcurrentContactがあるなら、それをbreakする.
+    bool swingEEFFound = false;
+    std::unordered_map<std::string, std::shared_ptr<Contact> > swingContacts = currentContacts; // 遊脚期のcontact
+    std::shared_ptr<EndEffector> targetEEF = nullptr; // 次に接触させるEEF
+    for(int i=0;i<targetMode->eefs.size();i++){
+      if(currentContacts.find(targetMode->eefs[i]) == currentContacts.end()){
+        targetEEF = param.endEffectors.find(targetMode->eefs[i])->second;
+        for(std::unordered_map<std::string, std::shared_ptr<Contact> >::iterator it=swingContacts.begin(); it!=swingContacts.end();){
+          if(targetEEF->limbLinks.find(it->second->link1) != targetEEF->limbLinks.end() ||
+             targetEEF->limbLinks.find(it->second->link2) != targetEEF->limbLinks.end()){
+            it = swingContacts.erase(it);
+          }else{
+            it++;
+          }
         }
-
-        if(param.debugLevel > 1){
-          solutionPath->print(std::cout);
+        swingEEFFound = true;
+        break;
+      }
+    }
+    //   次に、targetModeに無くて、currentContactsにあるEEFを探して、breakさせる
+    if(!swingEEFFound){
+      for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it=currentContacts.begin(); it!=currentContacts.end();it++){
+        bool found = false;
+        for(int i=0;i<targetMode->eefs.size();i++){
+          if(it->first == targetMode->eefs[i]) found = true;
         }
-
-        solutionPath->interpolate();
-        if(param.debugLevel > 1){
-          solutionPath->print(std::cout);
-        }
-
-        // 途中の軌道をpathに入れて返す
-        path->resize(solutionPath->getStateCount());
-        for(int j=0;j<solutionPath->getStateCount();j++){
-          //stateSpace->getDimension()は,SO3StateSpaceが3を返してしまう(実際はquaternionで4)ので、使えない
-          state2Frame(stateSpace, solutionPath->getState(j), path->at(j));
+        if(!found){
+          swingContacts.erase(it->first);
+          swingEEFFound = true;
+          break;
         }
       }
     }
-
-    // goal stateをvariablesに反映して返す.
-    if(problemDefinition->hasSolution()) {
-      const ompl::geometric::PathGeometricPtr solutionPath = std::dynamic_pointer_cast<ompl::geometric::PathGeometric>(problemDefinition->getSolutionPath());
-      state2Link(stateSpace, solutionPath->getState(solutionPath->getStateCount()-1), variables[0]);
-      std::set<cnoid::BodyPtr> bodies = getBodies(variables[0]);
-      for(std::set<cnoid::BodyPtr>::const_iterator it=bodies.begin(); it != bodies.end(); it++){
-        (*it)->calcForwardKinematics(false); // 疎な軌道生成なので、velocityはチェックしない
-        (*it)->calcCenterOfMass();
-      }
-    }
+    //   最後に、prevSwingEEFの次のEEFをswingする
 
 
-    return solved == ompl::base::PlannerStatus::EXACT_SOLUTION;
+
+    frame2Body(currentAngle, currentRobot);
+
+
+    
+
+    // breakするなら、contact breakability checkして、だめならnext limb
+
+
+    // makeするなら、swing期で、rootを可能な限りcmd_vel方向に進めるIKをして、限界まで進んだ位置からさらに+Xしたroot位置を用いて、reachibilityで環境接触候補点を絞る
+
+
+    // 候補点に今の接触位置が含まれているなら、next limb
+
+
+    // 含まれてないなら、それらに対してompl (goalのnominal root poseを与える). ダメならnext limb
+
+
+    // break->make指令およびangle-vectorが出てくる. (stateが別れている.)
+
+
+    return true;
   }
-
-
 };

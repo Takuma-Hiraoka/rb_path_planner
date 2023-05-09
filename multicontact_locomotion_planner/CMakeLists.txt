@@ -7,6 +7,7 @@ set(CMAKE_BUILD_TYPE Release)
 find_package(catkin REQUIRED COMPONENTS
   ik_constraint2
   choreonoid_viewer
+  moveit_core
   )
 
 find_package(choreonoid REQUIRED)
@@ -37,6 +38,7 @@ add_library(${PROJECT_NAME}
   src/multicontact_locomotion_planner.cpp
   src/CnoidStateSpace.cpp
   src/RBRRTStateValidityChecker.cpp
+  src/RobotState.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
