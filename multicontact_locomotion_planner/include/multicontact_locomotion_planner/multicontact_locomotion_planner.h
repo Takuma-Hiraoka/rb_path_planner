@@ -30,6 +30,7 @@ namespace multicontact_locomotion_planner{
   public:
     bool solveFullbodyIK(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
                          const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
+                         const std::unordered_map<std::string, std::shared_ptr<Contact> >& nearContacts,
                          const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& targetConstraints,
                          std::shared_ptr<std::vector<std::vector<double> > >& path
                          );
@@ -67,15 +68,6 @@ namespace multicontact_locomotion_planner{
 
                 const MLPParam& param
                 );
-
-  bool solveContactBreakabilityIK(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
-                                  const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
-                                  const std::unordered_map<std::string, std::shared_ptr<Contact> >& swingContacts,
-                                  const std::shared_ptr<Contact>& breakContact,
-                                  std::shared_ptr<std::vector<std::vector<double> > >& path
-                                  ){
-    return true;
-  }
 
   bool isInsideReachiability(const std::vector<double>& subGoal,
                              const std::shared_ptr<EndEffector>& endEffector,

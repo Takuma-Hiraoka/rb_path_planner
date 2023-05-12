@@ -4,11 +4,13 @@
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <cnoid/MeshGenerator>
 
 namespace multicontact_locomotion_planner{
 
   bool RobotIKInfo::solveFullbodyIK(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
                                     const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
+                                    const std::unordered_map<std::string, std::shared_ptr<Contact> >& nearContacts,
                                     const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& targetConstraints,
                                     std::shared_ptr<std::vector<std::vector<double> > >& path
                                     ){
@@ -28,8 +30,17 @@ namespace multicontact_locomotion_planner{
           bbx.dimensions = it->second->ignoreBoundingBoxDimensions;
           this->envConstraints[i]->ignoreBoundingBox().push_back(bbx);
         }
-        constraints1.push_back(this->envConstraints[i]);
       }
+      for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it = nearContacts.begin();it!=nearContacts.end();it++){
+        if(it->second->ignoreLinks.find(this->envConstraints[i]->A_link()) != it->second->ignoreLinks.end()){
+          ik_constraint2_distance_field::DistanceFieldCollisionConstraint::BoundingBox bbx;
+          bbx.localPose = it->second->ignoreBoundingBoxLocalPose;
+          bbx.parentLink = it->second->ignoreBoundingBoxParentLink;
+          bbx.dimensions = it->second->ignoreBoundingBoxDimensions;
+          this->envConstraints[i]->ignoreBoundingBox().push_back(bbx);
+        }
+      }
+      constraints1.push_back(this->envConstraints[i]);
     }
 
     // 重心実行可能領域
@@ -99,6 +110,7 @@ namespace multicontact_locomotion_planner{
       std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > targetConstraints{constraint};
       bool solved = param.robotIKInfo->solveFullbodyIK(variables,
                                                        currentContacts,
+                                                       std::unordered_map<std::string, std::shared_ptr<Contact> >(),
                                                        targetConstraints,
                                                        path);
       if(solved){
@@ -112,7 +124,7 @@ namespace multicontact_locomotion_planner{
     }
 
 
-    // 再度今のroot位置から、target root pathのsubgoal点を見つける. (subGoalが前回のiterationよりも前に進んでいることが期待される)
+    // subGoalに可能な限り近づけたところで、再度今のroot位置から、target root pathのsubgoal点を見つける. (subGoalが前回のiterationよりも前に進んでいることが期待される)
     subGoalIdx = -1;
     subGoalFound = false;
     for(int i=targetRootPath.size()-1;i>=0;i--){
@@ -134,6 +146,10 @@ namespace multicontact_locomotion_planner{
     }
 
     std::shared_ptr<Mode> targetMode = param.modes.find(targetRootPath[subGoalIdx].second)->second;
+    frame2Link(targetRootPath[subGoalIdx].first, std::vector<cnoid::LinkPtr>{param.abstractRobot->rootLink()});
+    param.abstractRobot->calcForwardKinematics();
+    calcHorizontal(param.horizontals);
+    param.horizontalRobot->calcForwardKinematics();
 
     // 次にswingするeefを決める
     //   まず、targetModeにあって、currentContactsに無いEEFを探して、makeさせる. このとき、同一limbに別のcurrentContactがあるなら、それをbreakする.
@@ -179,14 +195,28 @@ namespace multicontact_locomotion_planner{
     }
     //   最後に、prevSwingEEFの次のEEFをswingする
     if(!swingEEFFound){
+
       for(int i=0;i<targetMode->eefs.size();i++){
         if(prevSwingEEF == targetMode->eefs[i]) {
           int nextEEFIdx = (i+1==targetMode->eefs.size()) ? 0 : i+1;
 
           // 候補点に今の接触位置が含まれているなら、別のlimbへ
-          if(isInsideReachiability(targetRootPath[subGoalIdx].first,
-                                   param.endEffectors.find(targetMode->eefs[nextEEFIdx])->second,
-                                   currentContacts.find(targetMode->eefs[nextEEFIdx])->second)){
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> reachabilityConstraint = targetMode->reachabilityConstraints[nextEEFIdx];
+          {
+            cnoid::MeshGenerator meshGenerator;
+            cnoid::LinkPtr tmpLink = new cnoid::Link();
+            tmpLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
+            cnoid::SgShapePtr shape = new cnoid::SgShape();
+            shape->setMesh(meshGenerator.generateBox(cnoid::Vector3(0.01,0.01,0.01)));
+            cnoid::SgGroupPtr group = new cnoid::SgGroup();
+            group->addChild(shape);
+            tmpLink->setShape(group);
+            tmpLink->T() = param.endEffectors.find(targetMode->eefs[nextEEFIdx])->second->parentLink->T() * param.endEffectors.find(targetMode->eefs[nextEEFIdx])->second->localPose;
+
+            reachabilityConstraint->B_link() = tmpLink;
+          }
+          reachabilityConstraint->updateBounds();
+          if(!reachabilityConstraint->isSatisfied()){
             continue;
           }
 
@@ -208,18 +238,52 @@ namespace multicontact_locomotion_planner{
     frame2Body(currentAngle, currentRobot);
 
 
-    // breakするなら、contact breakability checkして、だめならnext limb
-    std::shared_ptr<std::vector<std::vector<double> > > breakPath = std::make_shared<std::vector<std::vector<double> > >();
+    // breakするなら、
+    std::shared_ptr<std::vector<std::vector<double> > > breakPath1 = std::make_shared<std::vector<std::vector<double> > >();
+    std::shared_ptr<std::vector<std::vector<double> > > breakPath2 = std::make_shared<std::vector<std::vector<double> > >();
     if(breakContact){
-      if(!solveContactBreakabilityIK(variables,
-                                     currentContacts,
-                                     swingContacts,
-                                     breakContact,
-                                     breakPath
-                                     )){
-        std::cerr << "[" << __FUNCTION__ << "] breakPath is not found" << std::endl;
-        frame2Body(currentAngle, currentRobot);
-        return false;
+      {
+        // contact breakability check
+        // TODO
+        std::shared_ptr<ik_constraint2::COMConstraint> constraint = std::make_shared<ik_constraint2::COMConstraint>();
+        std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > targetConstraints{};
+        bool solved = param.robotIKInfo->solveFullbodyIK(variables,
+                                                         currentContacts,
+                                                         std::unordered_map<std::string, std::shared_ptr<Contact> >(),
+                                                         targetConstraints,
+                                                         breakPath1);
+        if(!solved){
+          std::cerr << "[" << __FUNCTION__ << "] breakPath is not found" << std::endl;
+          frame2Body(currentAngle, currentRobot);
+          return false;
+        }
+      }
+
+      {
+        // pre contact pose
+        std::vector<cnoid::LinkPtr> variables_near = variables;
+        for(int i=0;i<breakContact->preContactAngles.size();i++){
+          breakContact->preContactAngles[i].first->q() = breakContact->preContactAngles[i].second;
+
+          std::vector<cnoid::LinkPtr>::iterator it = std::remove(variables_near.begin(), variables_near.end(), breakContact->preContactAngles[i].first);
+          variables_near.erase(it, variables_near.end());
+        }
+        param.robot->calcForwardKinematics();
+
+        std::shared_ptr<ik_constraint2::PositionConstraint> constraint = std::make_shared<ik_constraint2::PositionConstraint>();
+        constraint->A_link() = breakContact->link1;
+        constraint->A_localpos() = breakContact->localPose1;
+        constraint->B_link() = breakContact->link2;
+        constraint->B_localpos() = breakContact->localPose2 * breakContact->preContactOffset;
+
+        std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > targetConstraints{constraint};
+        std::unordered_map<std::string, std::shared_ptr<Contact> > nearContacts;
+        nearContacts[breakContact->name] = breakContact;
+        bool solved = param.robotIKInfo->solveFullbodyIK(variables,
+                                                         currentContacts,
+                                                         nearContacts,
+                                                         targetConstraints,
+                                                         breakPath2);
       }
     }
 
