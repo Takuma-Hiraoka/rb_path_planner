@@ -8,6 +8,7 @@
 #include <Eigen/Eigen>
 #include <moveit/distance_field/propagation_distance_field.h>
 #include <cnoid/Body>
+#include <ik_constraint2/ik_constraint2.h>
 
 namespace multicontact_locomotion_planner{
 
@@ -22,11 +23,15 @@ namespace multicontact_locomotion_planner{
     cnoid::VectorX ld;
     cnoid::VectorX ud;
 
+    std::shared_ptr<ik_constraint2::PositionConstraint> ikConstraint = std::make_shared<ik_constraint2::PositionConstraint>();
+
     cnoid::Vector3 preContactOffset = cnoid::Vector3::Zero(); // 接触の前後で、実際に接触する位置姿勢から、エンドエフェクタ座標系でこの値だけoffsetした位置に、まず移動する. ここから接触までの間は、直線的に移動しcollisionを許容する.
     // ignore boundingbox
-    std::vector<cnoid::LinkPtr> ignoreLinks; // 干渉を許容しうるリンク
-    cnoid::Position ignoreBoundingBoxLocalPose = cnoid::Position::Identity(); // endeffector frame.
+    std::unordered_set<cnoid::LinkPtr> ignoreLinks; // 干渉を許容しうるリンク
+    cnoid::LinkPtr ignoreBoundingBoxParentLink = nullptr;
+    cnoid::Position ignoreBoundingBoxLocalPose = cnoid::Position::Identity(); // parent link frame.
     cnoid::Vector3 ignoreBoundingBoxDimensions = cnoid::Vector3::Zero(); // ignoreLinksのignoreBoundingBox内にaある部分は、preContact~contactまでの間はobstacleとの干渉を許容する.
+
     std::vector<std::pair<cnoid::LinkPtr, double> > preContactAngles; // preContactから接触までの間のangle
     std::vector<std::pair<cnoid::LinkPtr, double> > contactAngles; // 接触してからのangle
 
@@ -45,6 +50,16 @@ namespace multicontact_locomotion_planner{
     Eigen::SparseMatrix<double,Eigen::RowMajor> C{0,6}; // localPose1 frame/origin. link1がlink2から受ける力に関する接触力制約. 列は6. C, ld, udの行数は同じ.
     cnoid::VectorX ld;
     cnoid::VectorX ud;
+
+    cnoid::Vector3 preContactOffset = cnoid::Vector3::Zero(); // 接触の前後で、実際に接触する位置姿勢から、エンドエフェクタ座標系でこの値だけoffsetした位置に、まず移動する. ここから接触までの間は、直線的に移動しcollisionを許容する.
+    // ignore boundingbox
+    std::unordered_set<cnoid::LinkPtr> ignoreLinks; // 干渉を許容しうるリンク
+    cnoid::LinkPtr ignoreBoundingBoxParentLink = nullptr;
+    cnoid::Position ignoreBoundingBoxLocalPose = cnoid::Position::Identity(); // parent link frame.
+    cnoid::Vector3 ignoreBoundingBoxDimensions = cnoid::Vector3::Zero(); // ignoreLinksのignoreBoundingBox内にaある部分は、preContact~contactまでの間はobstacleとの干渉を許容する.
+    std::vector<std::pair<cnoid::LinkPtr, double> > preContactAngles; // preContactから接触までの間のangle
+
+    std::shared_ptr<ik_constraint2::PositionConstraint> ikConstraint = std::make_shared<ik_constraint2::PositionConstraint>();
   };
 
   class RobotState {

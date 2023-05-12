@@ -6,6 +6,8 @@ set(CMAKE_BUILD_TYPE Release)
 
 find_package(catkin REQUIRED COMPONENTS
   ik_constraint2
+  ik_constraint2_distance_field
+  prioritized_inverse_kinematics_solver2
   choreonoid_viewer
   moveit_core
   )
