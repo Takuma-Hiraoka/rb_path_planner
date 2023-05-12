@@ -19,14 +19,14 @@ namespace multicontact_locomotion_planner{
 
     cnoid::LinkPtr parentLink;
     cnoid::Position localPose;
-    enum class EnvironmentType {LARGESURFACE, SMALLSURFACE, GRASP } environmemtType = EnvironmentType::LARGESURFACE;
+    enum class EnvironmentType {LARGESURFACE, SMALLSURFACE, GRASP } environmentType = EnvironmentType::LARGESURFACE;
     Eigen::SparseMatrix<double,Eigen::RowMajor> C{0,6}; // localPose frame/origin. endeffectorが受ける力に関する接触力制約. 列は6. C, ld, udの行数は同じ.
     cnoid::VectorX ld;
     cnoid::VectorX ud;
 
     std::shared_ptr<ik_constraint2::PositionConstraint> ikConstraint = std::make_shared<ik_constraint2::PositionConstraint>();
 
-    cnoid::Vector3 preContactOffset = cnoid::Vector3::Zero(); // 接触の前後で、実際に接触する位置姿勢から、エンドエフェクタ座標系でこの値だけoffsetした位置に、まず移動する. ここから接触までの間は、直線的に移動しcollisionを許容する.
+    cnoid::Position preContactOffset = cnoid::Position::Identity(); // 接触の前後で、実際に接触する位置姿勢から、エンドエフェクタ座標系でこの値だけoffsetした位置に、まず移動する. ここから接触までの間は、直線的に移動しcollisionを許容する.
     // ignore boundingbox
     std::unordered_set<cnoid::LinkPtr> ignoreLinks; // 干渉を許容しうるリンク
     cnoid::LinkPtr ignoreBoundingBoxParentLink = nullptr;
@@ -70,9 +70,9 @@ namespace multicontact_locomotion_planner{
   };
 
   class ContactableRegion {
+  public:
     cnoid::Position pose;
-    std::vector<cnoid::Vector3> shape; // pose frame.
-    enum class Type { SURFACE, GRASP } type = Type::SURFACE;
+    Eigen::Matrix<double, 3, Eigen::Dynamic> shape; // pose frame. 3xX [v1, v2, v3 ...] の凸形状
     /*
       2D surface polygonの場合
           shapeのZ座標は0. Z座標+の方向が法線方向
@@ -105,6 +105,7 @@ namespace multicontact_locomotion_planner{
     std::vector<std::string> eefs;
 
     std::vector<std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> > reachabilityConstraints; // サイズと順番はeefsと同じ. A_linkがreachability
+
   };
 };
 

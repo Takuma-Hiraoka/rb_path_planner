@@ -9,3 +9,14 @@
 - git:
     local-name: choreonoid_viewer
     uri: https://github.com/Naoki-Hiraoka/choreonoid_viewer.git
+
+- git:
+    local-name: convex_polyhedron_intersection
+    uri: https://github.com/Naoki-Hiraoka/convex_polyhedron_intersection.git
+- git:
+    local-name: cddeigen
+    uri: https://github.com/Naoki-Hiraoka/cddeigen
+
+- git:
+    local-name: choreonoid_qhull
+    uri: https://github.com/Naoki-Hiraoka/choreonoid_qhull.git

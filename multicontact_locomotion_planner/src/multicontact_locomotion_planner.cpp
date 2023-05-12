@@ -5,6 +5,8 @@
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <cnoid/MeshGenerator>
+#include <convex_polyhedron_intersection/convex_polyhedron_intersection.h>
+#include <choreonoid_qhull/choreonoid_qhull.h>
 
 namespace multicontact_locomotion_planner{
 
@@ -159,9 +161,11 @@ namespace multicontact_locomotion_planner{
     std::shared_ptr<Contact> breakContact = nullptr;
     std::unordered_map<std::string, std::shared_ptr<Contact> > swingContacts = currentContacts; // 遊脚期のcontact
     std::shared_ptr<EndEffector> targetEEF = nullptr; // 次に接触させるEEF
+    std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> targetReachabilityConstraint;
     for(int i=0;i<targetMode->eefs.size();i++){
       if(currentContacts.find(targetMode->eefs[i]) == currentContacts.end()){
         targetEEF = param.endEffectors.find(targetMode->eefs[i])->second;
+        targetReachabilityConstraint = targetMode->reachabilityConstraints[i];
         for(std::unordered_map<std::string, std::shared_ptr<Contact> >::iterator it=swingContacts.begin(); it!=swingContacts.end();){
           if(targetEEF->limbLinks.find(it->second->link1) != targetEEF->limbLinks.end() ||
              targetEEF->limbLinks.find(it->second->link2) != targetEEF->limbLinks.end()){
@@ -221,6 +225,7 @@ namespace multicontact_locomotion_planner{
           }
 
           targetEEF = param.endEffectors.find(targetMode->eefs[nextEEFIdx])->second;
+          targetReachabilityConstraint = targetMode->reachabilityConstraints[i];
           breakContact = currentContacts.find(targetMode->eefs[nextEEFIdx])->second;
           swingContacts.erase(targetMode->eefs[nextEEFIdx]);
           swingEEFFound = true;
@@ -287,14 +292,33 @@ namespace multicontact_locomotion_planner{
       }
     }
 
-    // makeするなら、subGoalのroot位置のreachibility内で環境接触候補点を絞り、そのどこかに接触させる軌道を生成する. (goalのnominal root poseを与える)
-    std::shared_ptr<std::vector<std::vector<double> > > makePath = std::make_shared<std::vector<std::vector<double> > >();
+    // makeするなら、subGoalのroot位置のreachability内で環境接触候補点を絞り、そのどこかに接触させる軌道を生成する. (goalのnominal root poseを与える)
+    std::shared_ptr<std::vector<std::vector<double> > > makePath1 = std::make_shared<std::vector<std::vector<double> > >();
     if(targetEEF){
+      // subGoalのroot位置のreachability内で環境接触候補点を絞る
+      Eigen::Matrix<double, 3, Eigen::Dynamic> region = choreonoid_qhull::meshToEigen(targetReachabilityConstraint->A_link()->collisionShape());
+      const std::vector<ContactableRegion>& candidate =
+        (targetEEF->environmentType==EndEffector::EnvironmentType::LARGESURFACE) ? environment->largeSurfaces :
+        (targetEEF->environmentType==EndEffector::EnvironmentType::SMALLSURFACE) ? environment->smallSurfaces :
+        environment->grasps;
+      std::vector<ContactableRegion> targetRegion;
+      for(int i=0;i<candidate.size();i++){
+        Eigen::Matrix<double, 3, Eigen::Dynamic> shape = candidate[i].pose * candidate[i].shape;
+        Eigen::MatrixXd intersection;
+        bool solved = convex_polyhedron_intersection::intersection(shape, region, intersection);
+        if(solved && intersection.cols() > 0){
+          Eigen::Matrix<double, 3, Eigen::Dynamic> intersectionLocal = candidate[i].pose.inverse() * Eigen::Matrix<double, 3, Eigen::Dynamic>(intersection);
+          targetRegion.push_back(candidate[i]);
+          targetRegion.back().pose = targetRegion.back().pose * targetEEF->preContactOffset;
+          targetRegion.back().shape = intersectionLocal;
+        }
+      }
+
       if(!solveSwingTrajectory(variables,
                                swingContacts,
                                targetRootPath[subGoalIdx].first,
                                targetEEF,
-                               makePath
+                               makePath1
                                )){
         std::cerr << "[" << __FUNCTION__ << "] makePath is not found" << std::endl;
         frame2Body(currentAngle, currentRobot);
