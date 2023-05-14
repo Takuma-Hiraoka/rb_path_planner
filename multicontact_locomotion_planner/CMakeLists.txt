@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   ik_constraint2
   ik_constraint2_distance_field
   ik_constraint2_vclip
+  ik_constraint2_region_cdd
   prioritized_inverse_kinematics_solver2
   choreonoid_viewer
   convex_polyhedron_intersection

@@ -197,7 +197,7 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->name = "rleg";
       endEffector->parentLink = robot->link("RLEG_ANKLE_R");
       endEffector->localPose.setIdentity();
-      endEffector->localPose.translation() = cnoid::Vector3(0.0,0.0,-0.04);
+      endEffector->localPose.translation() = cnoid::Vector3(0.0,0.0,-0.045);
       endEffector->environmentType = multicontact_locomotion_planner::EndEffector::EnvironmentType::LARGESURFACE;
       //endEffector->C TODO
       //endEffector->du TODO
@@ -232,7 +232,7 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->name = "lleg";
       endEffector->parentLink = robot->link("LLEG_ANKLE_R");
       endEffector->localPose.setIdentity();
-      endEffector->localPose.translation() = cnoid::Vector3(0.0,0.0,-0.04);
+      endEffector->localPose.translation() = cnoid::Vector3(0.0,0.0,-0.045);
       endEffector->environmentType = multicontact_locomotion_planner::EndEffector::EnvironmentType::LARGESURFACE;
       //endEffector->C TODO
       //endEffector->du TODO

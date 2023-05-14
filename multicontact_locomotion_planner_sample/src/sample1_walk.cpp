@@ -84,39 +84,49 @@ namespace multicontact_locomotion_planner_sample{
     param.endEffectors = endEffectors;
     param.modes = modes;
     param.robotIKInfo = robotIKInfo;
-    param.debugLevel = 3;
+    //param.debugLevel = 3;
+    param.debugLevel = 2;
 
     //param.robotIKInfo->pikParam.debugLevel = 2;
 
-    std::vector<multicontact_locomotion_planner::RobotState> path;
+    std::vector<std::vector<multicontact_locomotion_planner::RobotState> > path;
 
-    multicontact_locomotion_planner::solveMLP(robot,
-                                              environment,
-                                              currentContacts,
-                                              "",
-                                              targetRootPath,
-                                              variables,
-                                              path,
-                                              param
-                                              );
+    for(int i=0;i<10;i++){
+      std::vector<multicontact_locomotion_planner::RobotState> tmp_path;
+      multicontact_locomotion_planner::solveMLP(robot,
+                                                environment,
+                                                currentContacts,
+                                                "",
+                                                targetRootPath,
+                                                variables,
+                                                tmp_path,
+                                                param
+                                                );
+      if(tmp_path.size() > 0) {
+        path.push_back(tmp_path);
+        currentContacts = tmp_path.back().contacts;
+      }
+    }
 
     // main loop
     for(int i=0;i<path.size();i++){
-      multicontact_locomotion_planner::frame2Link(path[i].jointAngle,variables);
+      for(int j=0;j<path[i].size();j++){
+        multicontact_locomotion_planner::frame2Link(path[i][j].jointAngle,variables);
 
-      robot->calcForwardKinematics(false);
-      robot->calcCenterOfMass();
+        robot->calcForwardKinematics(false);
+        robot->calcCenterOfMass();
 
-      multicontact_locomotion_planner::calcAssoc(assocs);
-      abstractRobot->calcForwardKinematics(false);
-      abstractRobot->calcCenterOfMass();
-      multicontact_locomotion_planner::calcHorizontal(horizontals);
-      horizontalRobot->calcForwardKinematics(false);
-      horizontalRobot->calcCenterOfMass();
+        multicontact_locomotion_planner::calcAssoc(assocs);
+        abstractRobot->calcForwardKinematics(false);
+        abstractRobot->calcCenterOfMass();
+        multicontact_locomotion_planner::calcHorizontal(horizontals);
+        horizontalRobot->calcForwardKinematics(false);
+        horizontalRobot->calcCenterOfMass();
 
-      viewer->drawObjects();
+        viewer->drawObjects();
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
     }
 
   }

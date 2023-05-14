@@ -7,6 +7,7 @@
 #include <cnoid/MeshGenerator>
 #include <convex_polyhedron_intersection/convex_polyhedron_intersection.h>
 #include <choreonoid_qhull/choreonoid_qhull.h>
+#include <ik_constraint2_region_cdd/ik_constraint2_region_cdd.h>
 
 namespace multicontact_locomotion_planner{
 
@@ -85,7 +86,7 @@ namespace multicontact_locomotion_planner{
   bool RobotIKInfo::solveGlobalIK(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
                                   const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
                                   const std::unordered_map<std::string, std::shared_ptr<Contact> >& nearContacts,
-                                  const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& targetConstraints,
+                                  const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& targetConstraints,
                                   const cnoid::LinkPtr& projectLink,
                                   const cnoid::Position& projectLocalPose,
                                   std::shared_ptr<std::vector<std::vector<double> > >& path
@@ -111,11 +112,20 @@ namespace multicontact_locomotion_planner{
       constraints1.push_back(this->envConstraints[i]);
     }
 
-    // 重心実行可能領域
-    std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints2;//TODO
+    // 重心実行可能領域, 現在の接触位置
+    std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints2;
+    for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it = currentContacts.begin();it!=currentContacts.end();it++){
+      it->second->ikConstraint->A_link() = it->second->link1;
+      it->second->ikConstraint->A_localpos() = it->second->localPose1;
+      it->second->ikConstraint->B_link() = it->second->link2;
+      it->second->ikConstraint->B_localpos() = it->second->localPose2;
+      constraints2.push_back(it->second->ikConstraint);
+    }
+
+    // 重心実行可能領域TODO
 
     // target task
-    std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > goals = targetConstraints;
+    std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > > goals = targetConstraints;
 
     // nominal task
     std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > nominals = this->nominalConstraints;
@@ -475,6 +485,7 @@ namespace multicontact_locomotion_planner{
 
     // makeするなら、subGoalのroot位置のreachability内で環境接触候補点を絞り、そのどこかに接触させる軌道を生成する. (goalのnominal root poseを与える)
     std::shared_ptr<std::vector<std::vector<double> > > makePath1 = std::make_shared<std::vector<std::vector<double> > >();
+    std::shared_ptr<std::vector<std::vector<double> > > makePath2 = std::make_shared<std::vector<std::vector<double> > >();
     std::unordered_map<std::string, std::shared_ptr<Contact> > currentContactsAfterMake = currentContactsAfterBreak;
     if(targetEEF){
       if(param.debugLevel>=2){
@@ -482,7 +493,7 @@ namespace multicontact_locomotion_planner{
       }
 
       // subGoalのroot位置のreachability内で環境接触候補点を絞る
-      Eigen::Matrix<double, 3, Eigen::Dynamic> region = choreonoid_qhull::meshToEigen(targetReachabilityConstraint->A_link()->collisionShape());
+      Eigen::Matrix<double, 3, Eigen::Dynamic> region = targetReachabilityConstraint->A_link()->T() * choreonoid_qhull::meshToEigen(targetReachabilityConstraint->A_link()->collisionShape());
       const std::vector<ContactableRegion>& candidate =
         (targetEEF->environmentType==EndEffector::EnvironmentType::LARGESURFACE) ? environment->largeSurfaces :
         (targetEEF->environmentType==EndEffector::EnvironmentType::SMALLSURFACE) ? environment->smallSurfaces :
@@ -499,14 +510,8 @@ namespace multicontact_locomotion_planner{
           targetRegion.back().shape = intersectionLocal;
         }
       }
-
-      if(!solveSwingTrajectory(variables,
-                               swingContacts,
-                               targetRootPath[subGoalIdx].first,
-                               targetEEF,
-                               makePath1
-                               )){
-        std::cerr << "[" << __FUNCTION__ << "] makePath is not found" << std::endl;
+      if(targetRegion.size()==0){
+        std::cerr << "[" << __FUNCTION__ << "] targetRegion is not found" << std::endl;
         frame2Link(currentAngle, variables);
         param.robot->calcForwardKinematics(false);
         param.robot->calcCenterOfMass();
@@ -518,6 +523,43 @@ namespace multicontact_locomotion_planner{
         return false;
       }
 
+      std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > > goals;
+      for(int i=0;i<targetRegion.size();i++){
+        std::shared_ptr<ik_constraint2_region_cdd::CddRegionConstraint> constraint = std::make_shared<ik_constraint2_region_cdd::CddRegionConstraint>();
+        constraint->A_link() = targetEEF->parentLink;
+        constraint->A_localpos() = targetEEF->localPose;
+        constraint->B_link() = nullptr;
+        constraint->B_localpos() = targetRegion[i].pose;
+        constraint->eval_link() = nullptr;
+        constraint->eval_localR() = targetRegion[i].pose.linear();
+        constraint->setVertices(targetRegion[i].shape);
+        goals.push_back(std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >{constraint});
+      }
+
+      if(!param.robotIKInfo->solveGlobalIK(variables,
+                                           currentContactsAfterBreak,
+                                           std::unordered_map<std::string, std::shared_ptr<Contact> >(),
+                                           goals,
+                                           targetEEF->parentLink,
+                                           targetEEF->localPose,
+                                           makePath1
+                                           )){
+        std::cerr << "[" << __FUNCTION__ << "] swing Path is not found" << std::endl;
+        frame2Link(currentAngle, variables);
+        param.robot->calcForwardKinematics(false);
+        param.robot->calcCenterOfMass();
+        multicontact_locomotion_planner::calcAssoc(param.assocs);
+        param.abstractRobot->calcForwardKinematics(false);
+        multicontact_locomotion_planner::calcHorizontal(param.horizontals);
+        param.horizontalRobot->calcForwardKinematics(false);
+
+        return false;
+      }
+
+      frame2Link(makePath1->back(), variables);
+      param.robot->calcForwardKinematics(false);
+      param.robot->calcCenterOfMass();
+
       if(param.debugLevel >= 3){
         if(param.viewer){
           param.viewer->drawObjects();
@@ -526,11 +568,101 @@ namespace multicontact_locomotion_planner{
         getchar();
       }
 
+
+      // pre contact pose
+      std::vector<cnoid::LinkPtr> variables_near = variables;
+      for(int i=0;i<targetEEF->preContactAngles.size();i++){
+        targetEEF->preContactAngles[i].first->q() = targetEEF->preContactAngles[i].second;
+
+        std::vector<cnoid::LinkPtr>::iterator it = std::remove(variables_near.begin(), variables_near.end(), targetEEF->preContactAngles[i].first);
+        variables_near.erase(it, variables_near.end());
+      }
+      param.robot->calcForwardKinematics();
+      param.robot->calcCenterOfMass();
+
+      std::shared_ptr<ik_constraint2::PositionConstraint> constraint = std::make_shared<ik_constraint2::PositionConstraint>();
+      constraint->A_link() = targetEEF->parentLink;
+      constraint->A_localpos() = targetEEF->localPose;
+      constraint->B_link() = nullptr;
+      constraint->B_localpos() = targetEEF->parentLink->T() * targetEEF->localPose * targetEEF->preContactOffset.inverse();
+      
+      std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > targetConstraints{constraint};
+      std::unordered_map<std::string, std::shared_ptr<Contact> > nearContacts;
+      nearContacts[targetEEF->name] = targetEEF->generateContact();
+      bool solved = param.robotIKInfo->solveFullbodyIK(variables,
+                                                       currentContactsAfterBreak,
+                                                       nearContacts,
+                                                       targetConstraints,
+                                                       makePath2);
+
+      if(!solved){
+        std::cerr << "[" << __FUNCTION__ << "] contact Path is not found" << std::endl;
+        frame2Link(currentAngle, variables);
+        param.robot->calcForwardKinematics(false);
+        param.robot->calcCenterOfMass();
+        multicontact_locomotion_planner::calcAssoc(param.assocs);
+        param.abstractRobot->calcForwardKinematics(false);
+        multicontact_locomotion_planner::calcHorizontal(param.horizontals);
+        param.horizontalRobot->calcForwardKinematics(false);
+
+        return false;
+      }
+
+      {
+        for(int i=0;i<targetEEF->contactAngles.size();i++){
+          targetEEF->contactAngles[i].first->q() = targetEEF->contactAngles[i].second;
+        }
+        std::vector<double> frame;
+        link2Frame(variables,frame);
+        makePath2->push_back(frame);
+      }
+      param.robot->calcForwardKinematics(false);
+      param.robot->calcCenterOfMass();
+
+      currentContactsAfterMake[targetEEF->name] = targetEEF->generateContact();
+
+      if(param.debugLevel >= 3){
+        if(param.viewer){
+          param.viewer->drawObjects();
+        }
+        std::cerr << "make contact. Press ENTER:" << std::endl;
+        getchar();
+      }
+
     }
 
 
     // break->make指令およびangle-vectorが出てくる. (stateが別れている.)
+    outputPath.clear();
+    for(int i=0;i<breakPath1->size();i++){
+      outputPath.resize(outputPath.size()+1);
+      outputPath.back().jointAngle = breakPath1->at(i);
+      outputPath.back().contacts = currentContacts;
+    }
+    for(int i=0;i<breakPath2->size();i++){
+      outputPath.resize(outputPath.size()+1);
+      outputPath.back().jointAngle = breakPath2->at(i);
+      outputPath.back().contacts = currentContactsAfterBreak;
+    }
+    for(int i=0;i<makePath1->size();i++){
+      outputPath.resize(outputPath.size()+1);
+      outputPath.back().jointAngle = makePath1->at(i);
+      outputPath.back().contacts = currentContactsAfterBreak;
+    }
+    for(int i=0;i<makePath2->size();i++){
+      outputPath.resize(outputPath.size()+1);
+      outputPath.back().jointAngle = makePath2->at(i);
+      outputPath.back().contacts = currentContactsAfterBreak;
+    }
+    {
+      outputPath.push_back(outputPath.back());
+      outputPath.back().contacts = currentContactsAfterMake;
+    }
 
+    multicontact_locomotion_planner::calcAssoc(param.assocs);
+    param.abstractRobot->calcForwardKinematics(false);
+    multicontact_locomotion_planner::calcHorizontal(param.horizontals);
+    param.horizontalRobot->calcForwardKinematics(false);
 
     return true;
   }

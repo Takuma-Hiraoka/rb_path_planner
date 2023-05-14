@@ -52,7 +52,7 @@ namespace multicontact_locomotion_planner{
     bool solveGlobalIK(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
                        const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
                        const std::unordered_map<std::string, std::shared_ptr<Contact> >& nearContacts,
-                       const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& targetConstraints,
+                       const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& targetConstraints,
                        const cnoid::LinkPtr& projectLink,
                        const cnoid::Position& projectLocalPose,
                        std::shared_ptr<std::vector<std::vector<double> > >& path
