@@ -61,23 +61,23 @@ namespace multicontact_locomotion_planner{
                                                                       this->tasks,
                                                                       this->pikParam);
 
-    for ( int i=0; i<constraints0.size(); i++ ) {
-      std::cerr << "constraints0: "<< constraints0[i]->isSatisfied() << std::endl;
-    }
-    for ( int i=0; i<constraints1.size(); i++ ) {
-      std::cerr << "constraints1: "<< constraints1[i]->isSatisfied() << std::endl;
-    }
-    for ( int i=0; i<constraints2.size(); i++ ) {
-      std::cerr << "constraints2: "<< constraints2[i]->isSatisfied() << std::endl;
-    }
-    for ( int i=0; i<constraints3.size(); i++ ) {
-      constraints3[i]->debugLevel() = 2;
-      constraints3[i]->updateBounds();
-      std::cerr << "constraints3: "<< constraints3[i]->isSatisfied() << std::endl;
-    }
-    for ( int i=0; i<constraints4.size(); i++ ) {
-      std::cerr << "constraints4: "<< constraints4[i]->isSatisfied() << std::endl;
-    }
+    // for ( int i=0; i<constraints0.size(); i++ ) {
+    //   std::cerr << "constraints0: "<< constraints0[i]->isSatisfied() << std::endl;
+    // }
+    // for ( int i=0; i<constraints1.size(); i++ ) {
+    //   std::cerr << "constraints1: "<< constraints1[i]->isSatisfied() << std::endl;
+    // }
+    // for ( int i=0; i<constraints2.size(); i++ ) {
+    //   std::cerr << "constraints2: "<< constraints2[i]->isSatisfied() << std::endl;
+    // }
+    // for ( int i=0; i<constraints3.size(); i++ ) {
+    //   constraints3[i]->debugLevel() = 2;
+    //   constraints3[i]->updateBounds();
+    //   std::cerr << "constraints3: "<< constraints3[i]->isSatisfied() << std::endl;
+    // }
+    // for ( int i=0; i<constraints4.size(); i++ ) {
+    //   std::cerr << "constraints4: "<< constraints4[i]->isSatisfied() << std::endl;
+    // }
 
     return solved;
   }
@@ -206,6 +206,10 @@ namespace multicontact_locomotion_planner{
           outputPath[i].jointAngle = path->at(i);
           outputPath[i].contacts = currentContacts;
         }
+        multicontact_locomotion_planner::calcAssoc(param.assocs);
+        param.abstractRobot->calcForwardKinematics(false);
+        multicontact_locomotion_planner::calcHorizontal(param.horizontals);
+        param.horizontalRobot->calcForwardKinematics(false);
         return true;
       }
     }
@@ -238,6 +242,7 @@ namespace multicontact_locomotion_planner{
       std::cerr << "[" << __FUNCTION__ << "] new subGoal is not found" << std::endl;
       frame2Link(currentAngle, variables);
       param.robot->calcForwardKinematics(false);
+      param.robot->calcCenterOfMass();
       multicontact_locomotion_planner::calcAssoc(param.assocs);
       param.abstractRobot->calcForwardKinematics(false);
       multicontact_locomotion_planner::calcHorizontal(param.horizontals);
@@ -250,12 +255,26 @@ namespace multicontact_locomotion_planner{
     }
 
     std::shared_ptr<Mode> targetMode = param.modes.find(targetRootPath[subGoalIdx].second)->second;
-    frame2Link(targetRootPath[subGoalIdx].first, std::vector<cnoid::LinkPtr>{param.abstractRobot->rootLink()});
+
+    // robotを初期姿勢に戻す.
+    frame2Link(currentAngle, variables);
     param.robot->calcForwardKinematics(false);
-    multicontact_locomotion_planner::calcAssoc(param.assocs);
+    param.robot->calcCenterOfMass();
+
+    // abstractRobot, horizontalRobotは、subGoalの位置にする
+    multicontact_locomotion_planner::frame2Link(targetRootPath[subGoalIdx].first, std::vector<cnoid::LinkPtr>{param.abstractRobot->rootLink()});
     param.abstractRobot->calcForwardKinematics(false);
     multicontact_locomotion_planner::calcHorizontal(param.horizontals);
     param.horizontalRobot->calcForwardKinematics(false);
+
+    if(param.debugLevel >= 3){
+      if(param.viewer){
+        param.viewer->drawObjects();
+      }
+      std::cerr << "check subGoal2. Press ENTER:" << std::endl;
+      getchar();
+    }
+
 
     // 次にswingするeefを決める
     //   まず、targetModeにあって、currentContactsに無いEEFを探して、makeさせる. このとき、同一limbに別のcurrentContactがあるなら、それをbreakする.
@@ -330,6 +349,7 @@ namespace multicontact_locomotion_planner{
 
           reachabilityConstraint->B_link() = tmpLink;
         }
+        reachabilityConstraint->debugLevel() = 2;
         reachabilityConstraint->updateBounds();
         if(!reachabilityConstraint->isSatisfied()){
           continue;
@@ -348,6 +368,7 @@ namespace multicontact_locomotion_planner{
       std::cerr << "[" << __FUNCTION__ << "] swing eef is not found" << std::endl;
       frame2Link(currentAngle, variables);
       param.robot->calcForwardKinematics(false);
+      param.robot->calcCenterOfMass();
       multicontact_locomotion_planner::calcAssoc(param.assocs);
       param.abstractRobot->calcForwardKinematics(false);
       multicontact_locomotion_planner::calcHorizontal(param.horizontals);
@@ -355,13 +376,6 @@ namespace multicontact_locomotion_planner{
 
       return false;
     }
-
-    frame2Link(currentAngle, variables);
-    param.robot->calcForwardKinematics(false);
-    multicontact_locomotion_planner::calcAssoc(param.assocs);
-    param.abstractRobot->calcForwardKinematics(false);
-    multicontact_locomotion_planner::calcHorizontal(param.horizontals);
-    param.horizontalRobot->calcForwardKinematics(false);
 
     // breakするなら、
     std::shared_ptr<std::vector<std::vector<double> > > breakPath1 = std::make_shared<std::vector<std::vector<double> > >();
@@ -386,6 +400,7 @@ namespace multicontact_locomotion_planner{
           std::cerr << "[" << __FUNCTION__ << "] breakPath is not found" << std::endl;
           frame2Link(currentAngle, variables);
           param.robot->calcForwardKinematics(false);
+          param.robot->calcCenterOfMass();
           multicontact_locomotion_planner::calcAssoc(param.assocs);
           param.abstractRobot->calcForwardKinematics(false);
           multicontact_locomotion_planner::calcHorizontal(param.horizontals);
@@ -416,6 +431,7 @@ namespace multicontact_locomotion_planner{
           variables_near.erase(it, variables_near.end());
         }
         param.robot->calcForwardKinematics();
+        param.robot->calcCenterOfMass();
 
         std::shared_ptr<ik_constraint2::PositionConstraint> constraint = std::make_shared<ik_constraint2::PositionConstraint>();
         constraint->A_link() = breakContact->link1;
@@ -436,6 +452,7 @@ namespace multicontact_locomotion_planner{
           std::cerr << "[" << __FUNCTION__ << "] post contact Path is not found" << std::endl;
           frame2Link(currentAngle, variables);
           param.robot->calcForwardKinematics(false);
+          param.robot->calcCenterOfMass();
           multicontact_locomotion_planner::calcAssoc(param.assocs);
           param.abstractRobot->calcForwardKinematics(false);
           multicontact_locomotion_planner::calcHorizontal(param.horizontals);
@@ -492,6 +509,7 @@ namespace multicontact_locomotion_planner{
         std::cerr << "[" << __FUNCTION__ << "] makePath is not found" << std::endl;
         frame2Link(currentAngle, variables);
         param.robot->calcForwardKinematics(false);
+        param.robot->calcCenterOfMass();
         multicontact_locomotion_planner::calcAssoc(param.assocs);
         param.abstractRobot->calcForwardKinematics(false);
         multicontact_locomotion_planner::calcHorizontal(param.horizontals);
