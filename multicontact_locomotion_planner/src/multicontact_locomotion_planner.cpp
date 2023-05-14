@@ -62,6 +62,67 @@ namespace multicontact_locomotion_planner{
     return solved;
   }
 
+  bool RobotIKInfo::solveGlobalIK(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
+                                  const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
+                                  const std::unordered_map<std::string, std::shared_ptr<Contact> >& nearContacts,
+                                  const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& targetConstraints,
+                                  const cnoid::LinkPtr& projectLink,
+                                  const cnoid::Position& projectLocalPose,
+                                  std::shared_ptr<std::vector<std::vector<double> > >& path
+                                  ){
+
+    // 自己干渉、関節上下限
+    std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints0 = this->selfConstraints;
+
+    // 環境干渉
+    std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints1;
+    for(int i=0;i<this->envConstraints.size();i++){
+      this->envConstraints[i]->ignoreBoundingBox().clear();
+      for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it = currentContacts.begin();it!=currentContacts.end();it++){
+        if(it->second->ignoreLinks.find(this->envConstraints[i]->A_link()) != it->second->ignoreLinks.end()){
+          ik_constraint2_distance_field::DistanceFieldCollisionConstraint::BoundingBox bbx;
+          bbx.localPose = it->second->ignoreBoundingBoxLocalPose;
+          bbx.parentLink = it->second->ignoreBoundingBoxParentLink;
+          bbx.dimensions = it->second->ignoreBoundingBoxDimensions;
+          this->envConstraints[i]->ignoreBoundingBox().push_back(bbx);
+        }
+      }
+      for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it = nearContacts.begin();it!=nearContacts.end();it++){
+        if(it->second->ignoreLinks.find(this->envConstraints[i]->A_link()) != it->second->ignoreLinks.end()){
+          ik_constraint2_distance_field::DistanceFieldCollisionConstraint::BoundingBox bbx;
+          bbx.localPose = it->second->ignoreBoundingBoxLocalPose;
+          bbx.parentLink = it->second->ignoreBoundingBoxParentLink;
+          bbx.dimensions = it->second->ignoreBoundingBoxDimensions;
+          this->envConstraints[i]->ignoreBoundingBox().push_back(bbx);
+        }
+      }
+      constraints1.push_back(this->envConstraints[i]);
+    }
+
+    // 重心実行可能領域
+    std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints2;//TODO
+
+    // target task
+    std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > goals = targetConstraints;
+
+    // nominal task
+    std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > nominals = this->nominalConstraints;
+
+    std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > > constraints{constraints0,constraints1,constraints2};
+
+    this->gikParam.projectLink.resize(1);
+    this->gikParam.projectLink[0] = projectLink;
+    this->gikParam.projectLocalPose = projectLocalPose;
+
+    bool solved = global_inverse_kinematics_solver::solveGIK(variables,
+                                                             constraints,
+                                                             goals,
+                                                             nominals,
+                                                             this->gikParam,
+                                                             path);
+    return solved;
+  }
+
 
   bool solveMLP(const cnoid::BodyPtr currentRobot,
                 const std::shared_ptr<Environment>& environment,
@@ -309,7 +370,7 @@ namespace multicontact_locomotion_planner{
         if(solved && intersection.cols() > 0){
           Eigen::Matrix<double, 3, Eigen::Dynamic> intersectionLocal = candidate[i].pose.inverse() * Eigen::Matrix<double, 3, Eigen::Dynamic>(intersection);
           targetRegion.push_back(candidate[i]);
-          targetRegion.back().pose = targetRegion.back().pose * targetEEF->preContactOffset;
+          targetRegion.back().pose = targetRegion.back().pose * targetEEF->preContactOffset; // offsetだけずらす
           targetRegion.back().shape = intersectionLocal;
         }
       }
