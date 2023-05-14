@@ -23,8 +23,6 @@ namespace multicontact_locomotion_planner{
   void frame2State(const std::vector<double>& frame, const ompl::base::StateSpace* space, ompl::base::State *state);
   void frame2Link(const std::vector<double>& frame, const std::vector<cnoid::LinkPtr>& links);
   void link2Frame(const std::vector<cnoid::LinkPtr>& links, std::vector<double>& frame);
-  void frame2Body(const std::vector<double>& frame, const cnoid::BodyPtr& body);
-  void body2Frame(const cnoid::BodyPtr& body, std::vector<double>& frame);
 
   std::set<cnoid::BodyPtr> getBodies(const std::vector<cnoid::LinkPtr>& links);
   std::set<cnoid::BodyPtr> getBodies(const std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& links);
@@ -77,6 +75,7 @@ namespace multicontact_locomotion_planner{
   // axisとlocalaxisがピッタリ180反対向きの場合、回転方向が定まらないので不安定
   Eigen::Matrix3d orientCoordToAxis(const Eigen::Matrix3d& m, const Eigen::Vector3d& axis, const Eigen::Vector3d& localaxis = Eigen::Vector3d::UnitZ());
   Eigen::Transform<double, 3, Eigen::AffineCompact> orientCoordToAxis(const Eigen::Transform<double, 3, Eigen::AffineCompact>& m, const Eigen::Vector3d& axis, const Eigen::Vector3d& localaxis = Eigen::Vector3d::UnitZ());
+  void calcAssoc(const std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& assocs);
   void calcHorizontal(const std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& horizontals);
 };
 

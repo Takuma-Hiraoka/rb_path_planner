@@ -22,6 +22,7 @@ namespace multicontact_locomotion_planner_sample{
     cnoid::BodyPtr robot;
     cnoid::BodyPtr abstractRobot;
     cnoid::BodyPtr horizontalRobot;
+    std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> > assocs;
     std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> > horizontals;
     std::unordered_map<std::string, std::shared_ptr<multicontact_locomotion_planner::EndEffector> > endEffectors;
     std::unordered_map<std::string, std::shared_ptr<multicontact_locomotion_planner::Mode> > modes;
@@ -30,6 +31,7 @@ namespace multicontact_locomotion_planner_sample{
                         robot,
                         abstractRobot,
                         horizontalRobot,
+                        assocs,
                         horizontals,
                         endEffectors,
                         modes,
@@ -41,17 +43,21 @@ namespace multicontact_locomotion_planner_sample{
     std::vector<std::pair<std::vector<double>, std::string> > targetRootPath;
     {
       std::vector<double> currentAngle;
-      multicontact_locomotion_planner::body2Frame(robot, currentAngle);
+      multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, currentAngle);
       std::vector<double> angle;
       multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, angle);
       targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "biped"));
       for(int i=0;i<7;i++){
-        robot->rootLink()->translation() += cnoid::Vector3(-0.5,0.0,0.0);
+        robot->rootLink()->translation() += cnoid::Vector3(-0.05,0.0,0.0);
         multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, angle);
         targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "biped"));
       }
-      multicontact_locomotion_planner::frame2Body(currentAngle, robot);
+      multicontact_locomotion_planner::frame2Link(currentAngle, std::vector<cnoid::LinkPtr>{robot->rootLink()});
     }
+
+    std::unordered_map<std::string, std::shared_ptr<multicontact_locomotion_planner::Contact> > currentContacts;
+    currentContacts["rleg"] = endEffectors["rleg"]->generateContact();
+    currentContacts["lleg"] = endEffectors["lleg"]->generateContact();
 
     // setup viewer
     std::shared_ptr<choreonoid_viewer::Viewer> viewer = std::make_shared<choreonoid_viewer::Viewer>();
@@ -63,23 +69,47 @@ namespace multicontact_locomotion_planner_sample{
     viewer->drawObjects();
 
     std::vector<cnoid::LinkPtr> variables;
-    variables.push_back(abstractRobot->rootLink());
+    variables.push_back(robot->rootLink());
+    for(int i=0;i<robot->numJoints();i++){
+      variables.push_back(robot->joint(i));
+    }
 
-    std::shared_ptr<std::vector<std::vector<double> > > path = std::make_shared<std::vector<std::vector<double> > >();
+    multicontact_locomotion_planner::MLPParam param;
+    param.viewer = viewer;
+    param.robot = robot;
+    param.abstractRobot = abstractRobot;
+    param.horizontalRobot = horizontalRobot;
+    param.assocs = assocs;
+    param.horizontals = horizontals;
+    param.endEffectors = endEffectors;
+    param.modes = modes;
+    param.robotIKInfo = robotIKInfo;
+    param.debugLevel = 3;
+
+    //param.robotIKInfo->pikParam.debugLevel = 2;
+
+    std::vector<multicontact_locomotion_planner::RobotState> path;
 
     multicontact_locomotion_planner::solveMLP(robot,
-                                              environment
+                                              environment,
+                                              currentContacts,
+                                              "",
+                                              targetRootPath,
+                                              variables,
+                                              path,
+                                              param
                                               );
 
     // main loop
-    for(int i=0;i<path->size();i++){
-      multicontact_locomotion_planner::frame2Link(path->at(i),variables);
-      abstractRobot->calcForwardKinematics(false);
-      abstractRobot->calcCenterOfMass();
+    for(int i=0;i<path.size();i++){
+      multicontact_locomotion_planner::frame2Link(path[i].jointAngle,variables);
 
-      robot->rootLink()->T() = abstractRobot->rootLink()->T();
       robot->calcForwardKinematics(false);
       robot->calcCenterOfMass();
+
+      multicontact_locomotion_planner::calcAssoc(assocs);
+      abstractRobot->calcForwardKinematics(false);
+      abstractRobot->calcCenterOfMass();
       multicontact_locomotion_planner::calcHorizontal(horizontals);
       horizontalRobot->calcForwardKinematics(false);
       horizontalRobot->calcCenterOfMass();

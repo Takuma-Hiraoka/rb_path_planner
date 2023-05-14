@@ -20,13 +20,8 @@ namespace multicontact_locomotion_planner{
     std::vector<std::shared_ptr<prioritized_qp_base::Task> > tasks;
     global_inverse_kinematics_solver::GIKParam gikParam;
     RobotIKInfo() {
-      pikParam.we = 1e2; // 逆運動学が振動しないこと優先. 1e0だと不安定. 1e3だと大きすぎる
-      pikParam.maxIteration = 100; // max iterationに達するか、convergeしたら終了する. isSatisfiedでは終了しない. ゼロ空間でreference angleに可能な限り近づけるタスクがあるので. 1 iterationで0.5msくらいかかるので、stateを1つ作るための時間の上限が見積もれる. 一見、この値を小さくすると早くなりそうだが、goalSampling時に本当はgoalに到達できるのにその前に返ってしまうことで遅くなることがあるため、少ないiterationでも収束するように他のパラメータを調整したほうがいい
-      pikParam.minIteration = 100;
-      pikParam.checkFinalState = true; // ゼロ空間でreference angleに可能な限り近づけるタスクのprecitionは大きくして、常にsatisfiedになることに注意
-      pikParam.calcVelocity = false; // 疎な軌道生成なので、velocityはチェックしない
-      pikParam.convergeThre = 5e-2; // 要パラチューン. IKConsraintのmaxErrorより小さくないと、収束誤判定する. maxErrorが5e-2の場合、5e-2だと大きすぎる. 5e-3だと小さすぎて時間がかかる. ikのwe, wn, wmax, maxErrorといったパラメータと連動してパラチューンせよ.
-      pikParam.pathOutputLoop = 5;
+      pikParam.we = 1e2;
+      pikParam.maxIteration = 100;
 
       gikParam.range = 0.5; // 0.2よりも0.3の方が速い. sample一回につきprojectGoalを行うので、rangeはなるべく大きい方がいい.
       gikParam.delta = 0.4; // 大きければ大きいほど速いはずだが、干渉計算や補間の正確さが犠牲になる. 0.2だと正確. 0.4だと速い
@@ -37,6 +32,13 @@ namespace multicontact_locomotion_planner{
       gikParam.drawLoop = 1;
       gikParam.threads = 1;
       gikParam.pikParam.convergeThre = 5e-2; // 2.5e-2は小さすぎる. gikParam.pikParam.debugLevel = 1にして観察せよ. goalのprecision()の値をこれにあわせて大きくせよ
+      gikParam.pikParam.pathOutputLoop = 5;
+      gikParam.pikParam.we = 1e2; // 逆運動学が振動しないこと優先. 1e0だと不安定. 1e3だと大きすぎる
+      gikParam.pikParam.maxIteration = 100; // max iterationに達するか、convergeしたら終了する. isSatisfiedでは終了しない. ゼロ空間でreference angleに可能な限り近づけるタスクがあるので. 1 iterationで0.5msくらいかかるので、stateを1つ作るための時間の上限が見積もれる. 一見、この値を小さくすると早くなりそうだが、goalSampling時に本当はgoalに到達できるのにその前に返ってしまうことで遅くなることがあるため、少ないiterationでも収束するように他のパラメータを調整したほうがいい
+      gikParam.pikParam.minIteration = 100;
+      gikParam.pikParam.checkFinalState = true; // ゼロ空間でreference angleに可能な限り近づけるタスクのprecitionは大きくして、常にsatisfiedになることに注意
+      gikParam.pikParam.calcVelocity = false; // 疎な軌道生成なので、velocityはチェックしない
+      gikParam.pikParam.convergeThre = 5e-2; // 要パラチューン. IKConsraintのmaxErrorより小さくないと、収束誤判定する. maxErrorが5e-2の場合、5e-2だと大きすぎる. 5e-3だと小さすぎて時間がかかる. ikのwe, wn, wmax, maxErrorといったパラメータと連動してパラチューンせよ.
       gikParam.pikParam.pathOutputLoop = 5;
 
     }
@@ -68,6 +70,7 @@ namespace multicontact_locomotion_planner{
     cnoid::BodyPtr robot;
     cnoid::BodyPtr abstractRobot;
     cnoid::BodyPtr horizontalRobot;
+    std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> > assocs;
     std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> > horizontals;
     std::unordered_map<std::string, std::shared_ptr<EndEffector> > endEffectors;
     std::unordered_map<std::string, std::shared_ptr<Mode> > modes;
@@ -75,7 +78,8 @@ namespace multicontact_locomotion_planner{
 
 
 
-    double subGoalDistance = 0.5;
+    double subGoalDistanceFar = 0.5;
+    double subGoalDistanceNear= 0.3;
 
   };
 

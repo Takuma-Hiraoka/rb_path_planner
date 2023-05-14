@@ -59,6 +59,9 @@ namespace multicontact_locomotion_planner{
     std::vector<std::pair<cnoid::LinkPtr, double> > contactAngles; // 接触してからのangle
 
     std::unordered_set<cnoid::LinkPtr> limbLinks; // 同一limbにあるlink. これらのどれかが接触している場合は、このEEFを接触させるまえにまずそれをbreakさせる必要がある.
+
+  public:
+    std::shared_ptr<Contact> generateContact();
   };
 
 

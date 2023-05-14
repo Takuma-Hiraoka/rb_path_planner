@@ -12,6 +12,7 @@ namespace multicontact_locomotion_planner_sample{
                            cnoid::BodyPtr& robot,
                            cnoid::BodyPtr& abstractRobot,
                            cnoid::BodyPtr& horizontalRobot,
+                           std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& assocs,
                            std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& horizontals,
                            std::unordered_map<std::string, std::shared_ptr<multicontact_locomotion_planner::EndEffector> >& endEffectors,
                            std::unordered_map<std::string, std::shared_ptr<multicontact_locomotion_planner::Mode> >& modes,
@@ -134,6 +135,8 @@ namespace multicontact_locomotion_planner_sample{
     abstractRobot->rootLink()->T() = robot->rootLink()->T();
     abstractRobot->calcForwardKinematics();
     abstractRobot->calcCenterOfMass();
+    assocs.clear();
+    assocs.push_back(std::make_pair<cnoid::LinkPtr, cnoid::LinkPtr>(robot->rootLink(), abstractRobot->rootLink()));
 
     horizontalRobot = new cnoid::Body();
     {
@@ -142,18 +145,18 @@ namespace multicontact_locomotion_planner_sample{
       {
         cnoid::LinkPtr rlegLink = new cnoid::Link();
         rlegLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
-        rlegLink->setOffsetTranslation(robot->link("RLEG_HIP_Y")->p() - robot->rootLink()->p());
+        rlegLink->setOffsetTranslation(robot->link("RLEG_HIP_P")->p() - robot->rootLink()->p());
         rlegLink->setName("RLEG");
         rootLink->appendChild(rlegLink);
         cnoid::SgShapePtr shape = new cnoid::SgShape();
-        shape->setMesh(meshGenerator.generateCylinder(0.2/*radius*/, 0.2/*height*/));
+        shape->setMesh(meshGenerator.generateCylinder(0.2/*radius*/, 0.3/*height*/));
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0.6);
         material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0,-0.1,-0.25);
-        posTransform->rotation() = cnoid::AngleAxis(M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
+        posTransform->translation() = cnoid::Vector3(0,-0.1,-0.55);
+        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
         group->addChild(posTransform);
@@ -162,18 +165,18 @@ namespace multicontact_locomotion_planner_sample{
       {
         cnoid::LinkPtr llegLink = new cnoid::Link();
         llegLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
-        llegLink->setOffsetTranslation(robot->link("LLEG_HIP_Y")->p() - robot->rootLink()->p());
+        llegLink->setOffsetTranslation(robot->link("LLEG_HIP_P")->p() - robot->rootLink()->p());
         llegLink->setName("LLEG");
         rootLink->appendChild(llegLink);
         cnoid::SgShapePtr shape = new cnoid::SgShape();
-        shape->setMesh(meshGenerator.generateCylinder(0.2/*radius*/, 0.2/*height*/));
+        shape->setMesh(meshGenerator.generateCylinder(0.2/*radius*/, 0.3/*height*/));
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0.6);
         material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0,+0.1,-0.25);
-        posTransform->rotation() = cnoid::AngleAxis(M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
+        posTransform->translation() = cnoid::Vector3(0,+0.1,-0.55);
+        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
         group->addChild(posTransform);
@@ -212,7 +215,7 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->ignoreLinks.insert(robot->link("RLEG_KNEE"));
       endEffector->ignoreBoundingBox.parentLink = endEffector->parentLink;
       endEffector->ignoreBoundingBox.localPose = endEffector->localPose;
-      endEffector->ignoreBoundingBox.dimensions = cnoid::Vector3(0.2,0.2,0.2);
+      endEffector->ignoreBoundingBox.dimensions = cnoid::Vector3(0.4,0.4,0.4);
       endEffector->preContactAngles.clear();
       endEffector->contactAngles.clear();
       endEffector->limbLinks.clear();
@@ -247,7 +250,7 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->ignoreLinks.insert(robot->link("LLEG_KNEE"));
       endEffector->ignoreBoundingBox.parentLink = endEffector->parentLink;
       endEffector->ignoreBoundingBox.localPose = endEffector->localPose;
-      endEffector->ignoreBoundingBox.dimensions = cnoid::Vector3(0.2,0.2,0.2);
+      endEffector->ignoreBoundingBox.dimensions = cnoid::Vector3(0.4,0.4,0.4);
       endEffector->preContactAngles.clear();
       endEffector->contactAngles.clear();
       endEffector->limbLinks.clear();
@@ -340,13 +343,6 @@ namespace multicontact_locomotion_planner_sample{
 
     {
       // task: nominal constairnt
-
-      std::vector<double> reset_manip_pose{
-        0.0, -0.349066, 0.0, 0.820305, -0.471239, 0.0,// rleg
-          0.523599, 0.0, 0.0, -1.74533, 0.15708, -0.113446, 0.637045,// rarm
-          0.0, -0.349066, 0.0, 0.820305, -0.471239, 0.0,// lleg
-          0.523599, 0.0, 0.0, -1.74533, -0.15708, -0.113446, -0.637045,// larm
-          0.1, 0.0, 0.0}; // torso. waist-pを少し前に傾けておくと、後ろにひっくり返りにくくなる
 
       for(int i=0;i<robot->numJoints();i++){
         std::shared_ptr<ik_constraint2::JointAngleConstraint> constraint = std::make_shared<ik_constraint2::JointAngleConstraint>();

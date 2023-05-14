@@ -94,41 +94,6 @@ namespace multicontact_locomotion_planner{
       }
     }
   }
-  void frame2Body(const std::vector<double>& frame, const cnoid::BodyPtr& body){
-    unsigned int i=0;
-    for(int l=0;l<body->numJoints();l++){
-      if(body->joint(l)->isRevoluteJoint() || body->joint(l)->isPrismaticJoint()) {
-        body->joint(l)->q() = frame[i];
-        i+=1;
-      }else if(body->joint(l)->isFreeJoint()) {
-        body->joint(l)->p()[0] = frame[i+0];
-        body->joint(l)->p()[1] = frame[i+1];
-        body->joint(l)->p()[2] = frame[i+2];
-        body->joint(l)->R() = cnoid::Quaternion(frame[i+6],
-                                                frame[i+3],
-                                                frame[i+4],
-                                                frame[i+5]).toRotationMatrix();
-        i+=7;
-      }
-    }
-  }
-  void body2Frame(const cnoid::BodyPtr& body, std::vector<double>& frame){
-    frame.clear();
-    for(int l=0;l<body->numJoints();l++){
-      if(body->joint(l)->isRevoluteJoint() || body->joint(l)->isPrismaticJoint()) {
-        frame.push_back(body->joint(l)->q());
-      }else if(body->joint(l)->isFreeJoint()) {
-        frame.push_back(body->joint(l)->p()[0]);
-        frame.push_back(body->joint(l)->p()[1]);
-        frame.push_back(body->joint(l)->p()[2]);
-        cnoid::Quaternion q(body->joint(l)->R());
-        frame.push_back(q.x());
-        frame.push_back(q.y());
-        frame.push_back(q.z());
-        frame.push_back(q.w());
-      }
-    }
-  }
 
   std::set<cnoid::BodyPtr> getBodies(const std::vector<cnoid::LinkPtr>& links){
     std::set<cnoid::BodyPtr> bodies;
@@ -266,6 +231,12 @@ namespace multicontact_locomotion_planner{
     Eigen::Transform<double, 3, Eigen::AffineCompact> ret = m;
     ret.linear() = orientCoordToAxis(ret.linear(), axis, localaxis);
     return ret;
+  }
+
+  void calcAssoc(const std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& assocs){
+    for(int i=0;i<assocs.size();i++){
+      assocs[i].second->T() = assocs[i].first->T();
+    }
   }
 
   void calcHorizontal(const std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& horizontals){

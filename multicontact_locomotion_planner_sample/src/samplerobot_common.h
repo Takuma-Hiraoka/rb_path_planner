@@ -10,6 +10,7 @@ namespace multicontact_locomotion_planner_sample{
                            cnoid::BodyPtr& robot,
                            cnoid::BodyPtr& abstractRobot,
                            cnoid::BodyPtr& horizontalRobot,
+                           std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& assocs,
                            std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> >& horizontals,
                            std::unordered_map<std::string, std::shared_ptr<multicontact_locomotion_planner::EndEffector> >& endEffectors,
                            std::unordered_map<std::string, std::shared_ptr<multicontact_locomotion_planner::Mode> >& modes,
