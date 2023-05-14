@@ -149,7 +149,7 @@ namespace multicontact_locomotion_planner_sample{
         rlegLink->setName("RLEG");
         rootLink->appendChild(rlegLink);
         cnoid::SgShapePtr shape = new cnoid::SgShape();
-        shape->setMesh(meshGenerator.generateCylinder(0.2/*radius*/, 0.3/*height*/));
+        shape->setMesh(meshGenerator.generateCylinder(0.15/*radius*/, 0.3/*height*/));
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0.6);
         material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
@@ -169,7 +169,7 @@ namespace multicontact_locomotion_planner_sample{
         llegLink->setName("LLEG");
         rootLink->appendChild(llegLink);
         cnoid::SgShapePtr shape = new cnoid::SgShape();
-        shape->setMesh(meshGenerator.generateCylinder(0.2/*radius*/, 0.3/*height*/));
+        shape->setMesh(meshGenerator.generateCylinder(0.15/*radius*/, 0.3/*height*/));
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0.6);
         material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
@@ -262,6 +262,80 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->limbLinks.insert(robot->link("LLEG_HIP_R"));
       endEffectors[endEffector->name] = endEffector;
     }
+    {
+      std::shared_ptr<multicontact_locomotion_planner::EndEffector> endEffector = std::make_shared<multicontact_locomotion_planner::EndEffector>();
+      endEffector->name = "rarm";
+      endEffector->parentLink = robot->link("RARM_WRIST_R");
+      endEffector->localPose.setIdentity();
+      endEffector->localPose.translation() = cnoid::Vector3(0.0,0.0,-0.2);
+      endEffector->environmentType = multicontact_locomotion_planner::EndEffector::EnvironmentType::LARGESURFACE;
+      //endEffector->C TODO
+      //endEffector->du TODO
+      //endEffector->dl TODO
+      endEffector->ikConstraint = std::make_shared<ik_constraint2::PositionConstraint>();
+      endEffector->ikConstraint->A_link() = endEffector->parentLink;
+      endEffector->ikConstraint->A_localpos() = endEffector->localPose;
+      endEffector->ikConstraint->B_link() = nullptr;
+      endEffector->ikConstraint->B_localpos() = endEffector->parentLink->T() * endEffector->localPose;
+      endEffector->preContactOffset.setIdentity();
+      endEffector->preContactOffset.translation()[2] = 0.05;
+      endEffector->ignoreLinks.clear();
+      endEffector->ignoreLinks.insert(robot->link("RARM_WRIST_R"));
+      endEffector->ignoreLinks.insert(robot->link("RARM_WRIST_P"));
+      endEffector->ignoreLinks.insert(robot->link("RARM_WRIST_Y"));
+      endEffector->ignoreLinks.insert(robot->link("RARM_ELBOW"));
+      endEffector->ignoreBoundingBox.parentLink = endEffector->parentLink;
+      endEffector->ignoreBoundingBox.localPose = endEffector->localPose;
+      endEffector->ignoreBoundingBox.dimensions = cnoid::Vector3(0.3,0.3,0.3);
+      endEffector->preContactAngles.clear();
+      endEffector->contactAngles.clear();
+      endEffector->limbLinks.clear();
+      endEffector->limbLinks.insert(robot->link("RARM_WRIST_R"));
+      endEffector->limbLinks.insert(robot->link("RARM_WRIST_P"));
+      endEffector->limbLinks.insert(robot->link("RARM_WRIST_Y"));
+      endEffector->limbLinks.insert(robot->link("RARM_ELBOW"));
+      endEffector->limbLinks.insert(robot->link("RARM_SHOULDER_Y"));
+      endEffector->limbLinks.insert(robot->link("RARM_SHOULDER_R"));
+      endEffector->limbLinks.insert(robot->link("RARM_SHOULDER_P"));
+      endEffectors[endEffector->name] = endEffector;
+    }
+    {
+      std::shared_ptr<multicontact_locomotion_planner::EndEffector> endEffector = std::make_shared<multicontact_locomotion_planner::EndEffector>();
+      endEffector->name = "larm";
+      endEffector->parentLink = robot->link("LARM_WRIST_R");
+      endEffector->localPose.setIdentity();
+      endEffector->localPose.translation() = cnoid::Vector3(0.0,0.0,-0.2);
+      endEffector->environmentType = multicontact_locomotion_planner::EndEffector::EnvironmentType::LARGESURFACE;
+      //endEffector->C TODO
+      //endEffector->du TODO
+      //endEffector->dl TODO
+      endEffector->ikConstraint = std::make_shared<ik_constraint2::PositionConstraint>();
+      endEffector->ikConstraint->A_link() = endEffector->parentLink;
+      endEffector->ikConstraint->A_localpos() = endEffector->localPose;
+      endEffector->ikConstraint->B_link() = nullptr;
+      endEffector->ikConstraint->B_localpos() = endEffector->parentLink->T() * endEffector->localPose;
+      endEffector->preContactOffset.setIdentity();
+      endEffector->preContactOffset.translation()[2] = 0.05;
+      endEffector->ignoreLinks.clear();
+      endEffector->ignoreLinks.insert(robot->link("LARM_WRIST_R"));
+      endEffector->ignoreLinks.insert(robot->link("LARM_WRIST_P"));
+      endEffector->ignoreLinks.insert(robot->link("LARM_WRIST_Y"));
+      endEffector->ignoreLinks.insert(robot->link("LARM_ELBOW"));
+      endEffector->ignoreBoundingBox.parentLink = endEffector->parentLink;
+      endEffector->ignoreBoundingBox.localPose = endEffector->localPose;
+      endEffector->ignoreBoundingBox.dimensions = cnoid::Vector3(0.3,0.3,0.3);
+      endEffector->preContactAngles.clear();
+      endEffector->contactAngles.clear();
+      endEffector->limbLinks.clear();
+      endEffector->limbLinks.insert(robot->link("LARM_WRIST_R"));
+      endEffector->limbLinks.insert(robot->link("LARM_WRIST_P"));
+      endEffector->limbLinks.insert(robot->link("LARM_WRIST_Y"));
+      endEffector->limbLinks.insert(robot->link("LARM_ELBOW"));
+      endEffector->limbLinks.insert(robot->link("LARM_SHOULDER_Y"));
+      endEffector->limbLinks.insert(robot->link("LARM_SHOULDER_R"));
+      endEffector->limbLinks.insert(robot->link("LARM_SHOULDER_P"));
+      endEffectors[endEffector->name] = endEffector;
+    }
 
     modes.clear();
     {
@@ -284,6 +358,57 @@ namespace multicontact_locomotion_planner_sample{
         mode->eefs.push_back("lleg");
         std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
         constraint->A_link() = horizontalRobot->link("LLEG");
+        constraint->B_link() = constraint->A_link(); // dummy
+        constraint->tolerance() = 0.0;
+        constraint->useSingleMesh() = false; // support polygonを個別にチェック
+        constraint->debugLevel() = 0;
+        constraint->updateBounds(); // キャッシュを内部に作る.
+        mode->reachabilityConstraints.push_back(constraint);
+      }
+      modes[mode->name]=mode;
+    }
+    {
+      std::shared_ptr<multicontact_locomotion_planner::Mode> mode = std::make_shared<multicontact_locomotion_planner::Mode>();
+      mode->name = "quadruped";
+      mode->eefs.clear();
+      mode->reachabilityConstraints.clear();
+      {
+        mode->eefs.push_back("rleg");
+        std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+        constraint->A_link() = abstractRobot->link("RLEG");
+        constraint->B_link() = constraint->A_link(); // dummy
+        constraint->tolerance() = 0.0;
+        constraint->useSingleMesh() = false; // support polygonを個別にチェック
+        constraint->debugLevel() = 0;
+        constraint->updateBounds(); // キャッシュを内部に作る.
+        mode->reachabilityConstraints.push_back(constraint);
+      }
+      {
+        mode->eefs.push_back("rarm");
+        std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+        constraint->A_link() = abstractRobot->link("RARM");
+        constraint->B_link() = constraint->A_link(); // dummy
+        constraint->tolerance() = 0.0;
+        constraint->useSingleMesh() = false; // support polygonを個別にチェック
+        constraint->debugLevel() = 0;
+        constraint->updateBounds(); // キャッシュを内部に作る.
+        mode->reachabilityConstraints.push_back(constraint);
+      }
+      {
+        mode->eefs.push_back("lleg");
+        std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+        constraint->A_link() = abstractRobot->link("LLEG");
+        constraint->B_link() = constraint->A_link(); // dummy
+        constraint->tolerance() = 0.0;
+        constraint->useSingleMesh() = false; // support polygonを個別にチェック
+        constraint->debugLevel() = 0;
+        constraint->updateBounds(); // キャッシュを内部に作る.
+        mode->reachabilityConstraints.push_back(constraint);
+      }
+      {
+        mode->eefs.push_back("larm");
+        std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+        constraint->A_link() = abstractRobot->link("LARM");
         constraint->B_link() = constraint->A_link(); // dummy
         constraint->tolerance() = 0.0;
         constraint->useSingleMesh() = false; // support polygonを個別にチェック

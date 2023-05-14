@@ -80,7 +80,7 @@ namespace multicontact_locomotion_planner{
 
     double subGoalDistanceFar = 0.5;
     double subGoalDistanceNear= 0.3;
-
+    double subGoalRotScale = 0.3; // 回転の重みを小さくしないと、subGoalDistanceNear内の点が見つからなかったり、translation的に不自然なsubGoalになったりする
   };
 
   bool solveMLP(const cnoid::BodyPtr currentRobot,
@@ -90,6 +90,7 @@ namespace multicontact_locomotion_planner{
                 const std::vector<std::pair<std::vector<double>, std::string> >& targetRootPath, // angle, mode
                 const std::vector<cnoid::LinkPtr>& variables, // 0: variables
                 std::vector<RobotState>& outputPath, // variablesの次元に対応
+                std::string& swingEEF,
 
                 const MLPParam& param
                 );

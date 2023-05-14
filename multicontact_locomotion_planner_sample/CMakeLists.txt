@@ -33,6 +33,7 @@ add_library(CnoidMultiContactLocomotionPlannerSamplePlugin SHARED
   src/samplerobot_common.cpp
   src/world_common.cpp
   src/sample1_walk.cpp
+  src/sample2_quad.cpp
   )
 target_link_libraries(CnoidMultiContactLocomotionPlannerSamplePlugin
   ${catkin_LIBRARIES}

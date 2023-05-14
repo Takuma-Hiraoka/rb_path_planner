@@ -14,7 +14,7 @@
 #include "world_common.h"
 
 namespace multicontact_locomotion_planner_sample{
-  void sample1_walk(){
+  void sample2_quad(){
     cnoid::BodyPtr obstacle;
     std::shared_ptr<multicontact_locomotion_planner::Environment> environment;
     generateStepWorld(obstacle, environment);
@@ -47,11 +47,25 @@ namespace multicontact_locomotion_planner_sample{
       std::vector<double> angle;
       multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, angle);
       targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "biped"));
-      for(int i=0;i<7;i++){
-        robot->rootLink()->translation() += cnoid::Vector3(-0.05,0.0,0.0);
+
+      for(int i=0;i<8;i++){
+        robot->rootLink()->R() = robot->rootLink()->R() * Eigen::AngleAxisd(M_PI/16,Eigen::Vector3d::UnitY());
         multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, angle);
         targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "biped"));
       }
+
+      for(int i=0;i<30;i++){
+        robot->rootLink()->translation() += cnoid::Vector3(-0.05,0.0,0.0);
+        multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, angle);
+        targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "quadruped"));
+      }
+
+      for(int i=0;i<8;i++){
+        robot->rootLink()->R() = robot->rootLink()->R() * Eigen::AngleAxisd(-M_PI/16,Eigen::Vector3d::UnitY());
+        multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, angle);
+        targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "biped"));
+      }
+
       multicontact_locomotion_planner::frame2Link(currentAngle, std::vector<cnoid::LinkPtr>{robot->rootLink()});
     }
 
@@ -90,10 +104,11 @@ namespace multicontact_locomotion_planner_sample{
     param.debugLevel = 2;
 
     //param.robotIKInfo->pikParam.debugLevel = 2;
+    param.robotIKInfo->gikParam.viewer = viewer;
 
     std::vector<std::vector<multicontact_locomotion_planner::RobotState> > path;
 
-    for(int i=0;i<10;i++){
+    for(int i=0;i<30;i++){
       std::vector<multicontact_locomotion_planner::RobotState> tmp_path;
       std::string swingEEF;
       multicontact_locomotion_planner::solveMLP(robot,
@@ -111,6 +126,14 @@ namespace multicontact_locomotion_planner_sample{
         currentContacts = tmp_path.back().contacts;
         prevSwingEEF = swingEEF;
       }
+
+      cnoid::Vector3 targetp(targetRootPath.back().first[0],targetRootPath.back().first[1],targetRootPath.back().first[2]);
+      cnoid::Quaternion targetR(targetRootPath.back().first[6],
+                                targetRootPath.back().first[3],
+                                targetRootPath.back().first[4],
+                                targetRootPath.back().first[5]);
+      double dist = std::sqrt((robot->rootLink()->p()-targetp).squaredNorm() + std::pow(cnoid::AngleAxis(robot->rootLink()->R().transpose()*targetR).angle(),2));
+      if(dist < 0.1) break;
     }
 
     // main loop

@@ -13,6 +13,15 @@ namespace multicontact_locomotion_planner_sample{
   };
   typedef cnoid::ref_ptr<sample1_walkItem> sample1_walkItemPtr;
 
+  void sample2_quad();
+  class sample2_quadItem : public choreonoid_viewer::ViewerBaseItem {
+  public:
+    static void initializeClass(cnoid::ExtensionManager* ext){ ext->itemManager().registerClass<sample2_quadItem>("sample2_quadItem"); }
+  protected:
+    virtual void main() override{ sample2_quad(); return; }
+  };
+  typedef cnoid::ref_ptr<sample2_quadItem> sample2_quadItemPtr;
+
   class MultiContactLocomotionPlannerSamplePlugin : public cnoid::Plugin
   {
   public:
@@ -24,6 +33,7 @@ namespace multicontact_locomotion_planner_sample{
     virtual bool initialize() override
     {
       sample1_walkItem::initializeClass(this);
+      sample2_quadItem::initializeClass(this);
       return true;
     }
   };

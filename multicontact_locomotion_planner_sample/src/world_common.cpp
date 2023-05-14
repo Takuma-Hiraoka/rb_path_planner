@@ -14,7 +14,7 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
         {
           cnoid::SgShapePtr shape = new cnoid::SgShape();
-          shape->setMesh(meshGenerator.generateBox(cnoid::Vector3(1,1,0.1)));
+          shape->setMesh(meshGenerator.generateBox(cnoid::Vector3(4,2,0.1)));
           cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
           material->setTransparency(0);
           shape->setMaterial(material);
@@ -30,7 +30,7 @@ namespace multicontact_locomotion_planner_sample{
           material->setTransparency(0);
           shape->setMaterial(material);
           cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-          posTransform->translation() = cnoid::Vector3(1,0,0.35);
+          posTransform->translation() = cnoid::Vector3(1.5,0,0.35);
           posTransform->addChild(shape);
           group->addChild(posTransform);
         }
@@ -68,15 +68,15 @@ namespace multicontact_locomotion_planner_sample{
         multicontact_locomotion_planner::ContactableRegion region;
         region.pose.translation() = cnoid::Vector3(0.0,0.0,0.0);
         region.shape.resize(3,4);
-        region.shape.col(0) = cnoid::Vector3(+0.4,+0.4,0.0);
-        region.shape.col(1) = cnoid::Vector3(-0.4,+0.4,0.0);
-        region.shape.col(2) = cnoid::Vector3(-0.4,-0.4,0.0);
-        region.shape.col(3) = cnoid::Vector3(+0.4,-0.4,0.0);
+        region.shape.col(0) = cnoid::Vector3(+1.9,+0.9,0.0);
+        region.shape.col(1) = cnoid::Vector3(-1.9,+0.9,0.0);
+        region.shape.col(2) = cnoid::Vector3(-1.9,-0.9,0.0);
+        region.shape.col(3) = cnoid::Vector3(+1.9,-0.9,0.0);
         environment->largeSurfaces.push_back(region);
       }
       {
         multicontact_locomotion_planner::ContactableRegion region;
-        region.pose.translation() = cnoid::Vector3(1.0,0.0,0.4);
+        region.pose.translation() = cnoid::Vector3(1.5,0.0,0.4);
         region.shape.resize(3,4);
         region.shape.col(0) = cnoid::Vector3(+0.4,+0.4,0.0);
         region.shape.col(1) = cnoid::Vector3(-0.4,+0.4,0.0);
