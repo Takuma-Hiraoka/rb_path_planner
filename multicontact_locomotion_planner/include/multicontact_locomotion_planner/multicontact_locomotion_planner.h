@@ -6,7 +6,6 @@
 #include <multicontact_locomotion_planner/RobotState.h>
 #include <multicontact_locomotion_planner/CnoidStateSpace.h>
 #include <multicontact_locomotion_planner/RBRRTStateValidityChecker.h>
-#include <ik_constraint2_distance_field/ik_constraint2_distance_field.h>
 #include <prioritized_inverse_kinematics_solver2/prioritized_inverse_kinematics_solver2.h>
 #include <global_inverse_kinematics_solver/global_inverse_kinematics_solver.h>
 
@@ -91,20 +90,12 @@ namespace multicontact_locomotion_planner{
                 const MLPParam& param
                 );
 
-  bool isInsideReachiability(const std::vector<double>& subGoal,
-                             const std::shared_ptr<EndEffector>& endEffector,
-                             const std::shared_ptr<Contact>& contact){
-    return true;
-  }
-
   bool solveSwingTrajectory(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
                             const std::unordered_map<std::string, std::shared_ptr<Contact> >& swingContacts,
                             const std::vector<double>& subGoal,
                             const std::shared_ptr<EndEffector>& targetEEF,
                             std::shared_ptr<std::vector<std::vector<double> > >& path
-                            ){
-    return true;
-  }
+                            );
 
 
 };

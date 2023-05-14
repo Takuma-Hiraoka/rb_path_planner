@@ -11,68 +11,47 @@
 #include <ik_constraint2_distance_field/ik_constraint2_distance_field.h>
 
 #include "samplerobot_common.h"
+#include "world_common.h"
 
 namespace multicontact_locomotion_planner_sample{
   void sample1_walk(){
+    cnoid::BodyPtr obstacle;
+    std::shared_ptr<multicontact_locomotion_planner::Environment> environment;
+    generateStepWorld(obstacle, environment);
+
     cnoid::BodyPtr robot;
     cnoid::BodyPtr abstractRobot;
     cnoid::BodyPtr horizontalRobot;
-    generateSampleRobot(robot, abstractRobot, horizontalRobot);
+    std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> > horizontals;
+    std::unordered_map<std::string, std::shared_ptr<multicontact_locomotion_planner::EndEffector> > endEffectors;
+    std::unordered_map<std::string, std::shared_ptr<multicontact_locomotion_planner::Mode> > modes;
+    std::shared_ptr<multicontact_locomotion_planner::RobotIKInfo> robotIKInfo;
+    generateSampleRobot(environment->obstacles,
+                        robot,
+                        abstractRobot,
+                        horizontalRobot,
+                        horizontals,
+                        endEffectors,
+                        modes,
+                        robotIKInfo);
 
     cnoid::MeshGenerator meshGenerator;
-    cnoid::BodyPtr obstacle = new cnoid::Body();
+
+
+    std::vector<std::pair<std::vector<double>, std::string> > targetRootPath;
     {
-      cnoid::LinkPtr rootLink = new cnoid::Link();
-      {
-        cnoid::SgGroupPtr group = new cnoid::SgGroup();
-        {
-          cnoid::SgShapePtr shape = new cnoid::SgShape();
-          shape->setMesh(meshGenerator.generateBox(cnoid::Vector3(1,1,0.1)));
-          cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-          material->setTransparency(0);
-          shape->setMaterial(material);
-          cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-          posTransform->translation() = cnoid::Vector3(0,0,-0.05);
-          posTransform->addChild(shape);
-          group->addChild(posTransform);
-        }
-        {
-          cnoid::SgShapePtr shape = new cnoid::SgShape();
-          shape->setMesh(meshGenerator.generateBox(cnoid::Vector3(1,1,0.1)));
-          cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-          material->setTransparency(0);
-          shape->setMaterial(material);
-          cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-          posTransform->translation() = cnoid::Vector3(1,0,0.35);
-          posTransform->addChild(shape);
-          group->addChild(posTransform);
-        }
-        rootLink->setShape(group);
+      std::vector<double> currentAngle;
+      multicontact_locomotion_planner::body2Frame(robot, currentAngle);
+      std::vector<double> angle;
+      multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, angle);
+      targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "biped"));
+      for(int i=0;i<7;i++){
+        robot->rootLink()->translation() += cnoid::Vector3(-0.5,0.0,0.0);
+        multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, angle);
+        targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "biped"));
       }
-      obstacle->setRootLink(rootLink);
+      multicontact_locomotion_planner::frame2Body(currentAngle, robot);
     }
-
-    // collision world
-    std::shared_ptr<distance_field::PropagationDistanceField> field = std::make_shared<distance_field::PropagationDistanceField>(5,//size_x
-                                                                                                                                 5,//size_y
-                                                                                                                                 5,//size_z
-                                                                                                                                 0.04,//resolution
-                                                                                                                                 -2.5,//origin_x
-                                                                                                                                 -2.5,//origin_y
-                                                                                                                                 -2.5,//origin_z
-                                                                                                                                 0.5, // max_distance
-                                                                                                                                 false// propagate_negative_distances
-                                                                                                                                 );
-    EigenSTL::vector_Vector3d vertices;
-    for(int i=0;i<obstacle->numLinks();i++){
-      std::vector<Eigen::Vector3f> vertices_ = ik_constraint2_distance_field::getSurfaceVertices(obstacle->link(i), 0.04);
-      for(int j=0;j<vertices_.size();j++){
-        vertices.push_back(obstacle->link(i)->T() * vertices_[j].cast<double>());
-      }
-    }
-    field->addPointsToField(vertices);
-
-
 
     // setup viewer
     std::shared_ptr<choreonoid_viewer::Viewer> viewer = std::make_shared<choreonoid_viewer::Viewer>();
@@ -86,11 +65,11 @@ namespace multicontact_locomotion_planner_sample{
     std::vector<cnoid::LinkPtr> variables;
     variables.push_back(abstractRobot->rootLink());
 
-    std::vector<std::pair<cnoid::LinkPtr, cnoid::LinkPtr> > horizontals;
-    horizontals.push_back(std::make_pair<cnoid::LinkPtr, cnoid::LinkPtr>(abstractRobot->rootLink(), horizontalRobot->rootLink()));
-
-
     std::shared_ptr<std::vector<std::vector<double> > > path = std::make_shared<std::vector<std::vector<double> > >();
+
+    multicontact_locomotion_planner::solveMLP(robot,
+                                              environment
+                                              );
 
     // main loop
     for(int i=0;i<path->size();i++){

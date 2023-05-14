@@ -6,12 +6,36 @@
 #include <string>
 #include <unordered_set>
 #include <Eigen/Eigen>
+#include <ik_constraint2_distance_field/ik_constraint2_distance_field.h>
 #include <moveit/distance_field/propagation_distance_field.h>
 #include <cnoid/Body>
 #include <ik_constraint2/ik_constraint2.h>
 #include <ik_constraint2_vclip/ik_constraint2_vclip.h>
 
 namespace multicontact_locomotion_planner{
+
+  class Contact {
+  public:
+    std::string name; // エンドエフェクタの名前の場合、そのエンドエフェクタがworldに接触していることを意味し、効率的に扱える
+
+    cnoid::LinkPtr link1 = nullptr; // nullptrならworld
+    cnoid::Position localPose1 = cnoid::Position::Identity();
+    cnoid::LinkPtr link2 = nullptr; // nullptrならworld
+    cnoid::Position localPose2 = cnoid::Position::Identity();
+
+    std::shared_ptr<ik_constraint2::PositionConstraint> ikConstraint = std::make_shared<ik_constraint2::PositionConstraint>(); // A_localposeを変えないで、B_localposeを変更する
+
+    Eigen::SparseMatrix<double,Eigen::RowMajor> C{0,6}; // localPose1 frame/origin. link1がlink2から受ける力に関する接触力制約. 列は6. C, ld, udの行数は同じ.
+    cnoid::VectorX ld;
+    cnoid::VectorX ud;
+
+    cnoid::Position preContactOffset = cnoid::Position::Identity(); // 接触の前後で、実際に接触する位置姿勢から、localpose1座標系でこの値だけoffsetした位置に、localpose1がまず移動する. ここから接触までの間は、直線的に移動しcollisionを許容する.
+    // ignore boundingbox
+    std::unordered_set<cnoid::LinkPtr> ignoreLinks; // 干渉を許容しうるリンク
+    ik_constraint2_distance_field::DistanceFieldCollisionConstraint::BoundingBox ignoreBoundingBox; // ignoreLinksのignoreBoundingBox内にaある部分は、preContact~contactまでの間はobstacleとの干渉を許容する.
+    std::vector<std::pair<cnoid::LinkPtr, double> > preContactAngles; // preContactから接触までの間のangle
+
+  };
 
   class EndEffector {
   public:
@@ -24,14 +48,12 @@ namespace multicontact_locomotion_planner{
     cnoid::VectorX ld;
     cnoid::VectorX ud;
 
-    std::shared_ptr<ik_constraint2::PositionConstraint> ikConstraint = std::make_shared<ik_constraint2::PositionConstraint>();
+    std::shared_ptr<ik_constraint2::PositionConstraint> ikConstraint = std::make_shared<ik_constraint2::PositionConstraint>(); // A_linkがこのEEF
 
     cnoid::Position preContactOffset = cnoid::Position::Identity(); // 接触の前後で、実際に接触する位置姿勢から、エンドエフェクタ座標系でこの値だけoffsetした位置に、まず移動する. ここから接触までの間は、直線的に移動しcollisionを許容する.
     // ignore boundingbox
     std::unordered_set<cnoid::LinkPtr> ignoreLinks; // 干渉を許容しうるリンク
-    cnoid::LinkPtr ignoreBoundingBoxParentLink = nullptr;
-    cnoid::Position ignoreBoundingBoxLocalPose = cnoid::Position::Identity(); // parent link frame.
-    cnoid::Vector3 ignoreBoundingBoxDimensions = cnoid::Vector3::Zero(); // ignoreLinksのignoreBoundingBox内にaある部分は、preContact~contactまでの間はobstacleとの干渉を許容する.
+    ik_constraint2_distance_field::DistanceFieldCollisionConstraint::BoundingBox ignoreBoundingBox; // ignoreLinksのignoreBoundingBox内にaある部分は、preContact~contactまでの間はobstacleとの干渉を許容する.
 
     std::vector<std::pair<cnoid::LinkPtr, double> > preContactAngles; // preContactから接触までの間のangle
     std::vector<std::pair<cnoid::LinkPtr, double> > contactAngles; // 接触してからのangle
@@ -39,29 +61,7 @@ namespace multicontact_locomotion_planner{
     std::unordered_set<cnoid::LinkPtr> limbLinks; // 同一limbにあるlink. これらのどれかが接触している場合は、このEEFを接触させるまえにまずそれをbreakさせる必要がある.
   };
 
-  class Contact {
-  public:
-    std::string name; // エンドエフェクタの名前の場合、そのエンドエフェクタがworldに接触していることを意味し、効率的に扱える
 
-    cnoid::LinkPtr link1 = nullptr; // nullptrならworld
-    cnoid::Position localPose1 = cnoid::Position::Identity();
-    cnoid::LinkPtr link2 = nullptr; // nullptrならworld
-    cnoid::Position localPose2 = cnoid::Position::Identity();
-
-    Eigen::SparseMatrix<double,Eigen::RowMajor> C{0,6}; // localPose1 frame/origin. link1がlink2から受ける力に関する接触力制約. 列は6. C, ld, udの行数は同じ.
-    cnoid::VectorX ld;
-    cnoid::VectorX ud;
-
-    cnoid::Position preContactOffset = cnoid::Position::Identity(); // 接触の前後で、実際に接触する位置姿勢から、localpose1座標系でこの値だけoffsetした位置に、localpose1がまず移動する. ここから接触までの間は、直線的に移動しcollisionを許容する.
-    // ignore boundingbox
-    std::unordered_set<cnoid::LinkPtr> ignoreLinks; // 干渉を許容しうるリンク
-    cnoid::LinkPtr ignoreBoundingBoxParentLink = nullptr;
-    cnoid::Position ignoreBoundingBoxLocalPose = cnoid::Position::Identity(); // parent link frame.
-    cnoid::Vector3 ignoreBoundingBoxDimensions = cnoid::Vector3::Zero(); // ignoreLinksのignoreBoundingBox内にaある部分は、preContact~contactまでの間はobstacleとの干渉を許容する.
-    std::vector<std::pair<cnoid::LinkPtr, double> > preContactAngles; // preContactから接触までの間のangle
-
-    std::shared_ptr<ik_constraint2::PositionConstraint> ikConstraint = std::make_shared<ik_constraint2::PositionConstraint>();
-  };
 
   class RobotState {
   public:
@@ -71,7 +71,7 @@ namespace multicontact_locomotion_planner{
 
   class ContactableRegion {
   public:
-    cnoid::Position pose;
+    cnoid::Position pose = cnoid::Position::Identity();
     Eigen::Matrix<double, 3, Eigen::Dynamic> shape; // pose frame. 3xX [v1, v2, v3 ...] の凸形状
     /*
       2D surface polygonの場合

@@ -31,6 +31,7 @@ endforeach(lib)
 add_library(CnoidMultiContactLocomotionPlannerSamplePlugin SHARED
   src/CnoidMultiContactLocomotionPlannerSamplePlugin.cpp
   src/samplerobot_common.cpp
+  src/world_common.cpp
   src/sample1_walk.cpp
   )
 target_link_libraries(CnoidMultiContactLocomotionPlannerSamplePlugin

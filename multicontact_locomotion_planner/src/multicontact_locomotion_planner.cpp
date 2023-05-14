@@ -26,27 +26,28 @@ namespace multicontact_locomotion_planner{
       this->envConstraints[i]->ignoreBoundingBox().clear();
       for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it = currentContacts.begin();it!=currentContacts.end();it++){
         if(it->second->ignoreLinks.find(this->envConstraints[i]->A_link()) != it->second->ignoreLinks.end()){
-          ik_constraint2_distance_field::DistanceFieldCollisionConstraint::BoundingBox bbx;
-          bbx.localPose = it->second->ignoreBoundingBoxLocalPose;
-          bbx.parentLink = it->second->ignoreBoundingBoxParentLink;
-          bbx.dimensions = it->second->ignoreBoundingBoxDimensions;
-          this->envConstraints[i]->ignoreBoundingBox().push_back(bbx);
+          this->envConstraints[i]->ignoreBoundingBox().push_back(it->second->ignoreBoundingBox);
         }
       }
       for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it = nearContacts.begin();it!=nearContacts.end();it++){
         if(it->second->ignoreLinks.find(this->envConstraints[i]->A_link()) != it->second->ignoreLinks.end()){
-          ik_constraint2_distance_field::DistanceFieldCollisionConstraint::BoundingBox bbx;
-          bbx.localPose = it->second->ignoreBoundingBoxLocalPose;
-          bbx.parentLink = it->second->ignoreBoundingBoxParentLink;
-          bbx.dimensions = it->second->ignoreBoundingBoxDimensions;
-          this->envConstraints[i]->ignoreBoundingBox().push_back(bbx);
+          this->envConstraints[i]->ignoreBoundingBox().push_back(it->second->ignoreBoundingBox);
         }
       }
       constraints1.push_back(this->envConstraints[i]);
     }
 
-    // 重心実行可能領域
-    std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints2;//TODO
+    // 重心実行可能領域, 現在の接触位置
+    std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints2;
+    for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it = currentContacts.begin();it!=currentContacts.end();it++){
+      it->second->ikConstraint->A_link() = it->second->link1;
+      it->second->ikConstraint->A_localpos() = it->second->localPose1;
+      it->second->ikConstraint->B_link() = it->second->link2;
+      it->second->ikConstraint->B_localpos() = it->second->localPose2;
+      constraints2.push_back(it->second->ikConstraint);
+    }
+
+    // 重心実行可能領域TODO
 
     // target task
     std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints3 = targetConstraints;
@@ -80,20 +81,12 @@ namespace multicontact_locomotion_planner{
       this->envConstraints[i]->ignoreBoundingBox().clear();
       for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it = currentContacts.begin();it!=currentContacts.end();it++){
         if(it->second->ignoreLinks.find(this->envConstraints[i]->A_link()) != it->second->ignoreLinks.end()){
-          ik_constraint2_distance_field::DistanceFieldCollisionConstraint::BoundingBox bbx;
-          bbx.localPose = it->second->ignoreBoundingBoxLocalPose;
-          bbx.parentLink = it->second->ignoreBoundingBoxParentLink;
-          bbx.dimensions = it->second->ignoreBoundingBoxDimensions;
-          this->envConstraints[i]->ignoreBoundingBox().push_back(bbx);
+          this->envConstraints[i]->ignoreBoundingBox().push_back(it->second->ignoreBoundingBox);
         }
       }
       for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it = nearContacts.begin();it!=nearContacts.end();it++){
         if(it->second->ignoreLinks.find(this->envConstraints[i]->A_link()) != it->second->ignoreLinks.end()){
-          ik_constraint2_distance_field::DistanceFieldCollisionConstraint::BoundingBox bbx;
-          bbx.localPose = it->second->ignoreBoundingBoxLocalPose;
-          bbx.parentLink = it->second->ignoreBoundingBoxParentLink;
-          bbx.dimensions = it->second->ignoreBoundingBoxDimensions;
-          this->envConstraints[i]->ignoreBoundingBox().push_back(bbx);
+          this->envConstraints[i]->ignoreBoundingBox().push_back(it->second->ignoreBoundingBox);
         }
       }
       constraints1.push_back(this->envConstraints[i]);
@@ -391,6 +384,15 @@ namespace multicontact_locomotion_planner{
     // break->make指令およびangle-vectorが出てくる. (stateが別れている.)
 
 
+    return true;
+  }
+
+  bool solveSwingTrajectory(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
+                            const std::unordered_map<std::string, std::shared_ptr<Contact> >& swingContacts,
+                            const std::vector<double>& subGoal,
+                            const std::shared_ptr<EndEffector>& targetEEF,
+                            std::shared_ptr<std::vector<std::vector<double> > >& path
+                            ){
     return true;
   }
 
