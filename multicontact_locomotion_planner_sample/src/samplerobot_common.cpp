@@ -234,14 +234,14 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateSphere(0.4/*radius*/));
+          shape1->setMesh(meshGenerator.generateCylinder(0.3/*radius*/, 0.7/*height*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
           shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
           cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(-0.5,0,0);
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
           Eigen::MatrixXd intersection;
-          convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);std::cerr<< vertices1 << std::endl; std::cerr<< vertices2 << std::endl;; std::cerr<< intersection << std::endl;
+          convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
           shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
@@ -249,6 +249,7 @@ namespace multicontact_locomotion_planner_sample{
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
+        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
         group->addChild(posTransform);
@@ -263,7 +264,7 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateSphere(0.3/*radius*/));
+          shape1->setMesh(meshGenerator.generateCylinder(0.2/*radius*/, 0.5/*height*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
           shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
@@ -277,7 +278,8 @@ namespace multicontact_locomotion_planner_sample{
         material->setTransparency(0.6);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0.2,0.0,-0.4);
+        posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
+        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
         group->addChild(posTransform);
@@ -292,7 +294,7 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateSphere(0.4/*radius*/));
+          shape1->setMesh(meshGenerator.generateCylinder(0.3/*radius*/, 0.7/*height*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
           shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
@@ -307,6 +309,7 @@ namespace multicontact_locomotion_planner_sample{
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
+        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
         group->addChild(posTransform);
@@ -321,7 +324,7 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateSphere(0.3/*radius*/));
+          shape1->setMesh(meshGenerator.generateCylinder(0.2/*radius*/, 0.5/*height*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
           shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
@@ -336,6 +339,7 @@ namespace multicontact_locomotion_planner_sample{
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
+        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
         group->addChild(posTransform);
