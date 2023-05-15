@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   choreonoid_viewer
   convex_polyhedron_intersection
   choreonoid_qhull
+  ik_constraint2
   )
 find_package(choreonoid REQUIRED)
 find_package(ompl REQUIRED)

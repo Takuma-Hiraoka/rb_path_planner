@@ -663,6 +663,21 @@ namespace multicontact_locomotion_planner_sample{
         constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
         mode->rootConstraints.push_back(constraint);
       }
+      {
+        // 前傾
+        std::shared_ptr<ik_constraint2::RegionConstraint> constraint = std::make_shared<ik_constraint2::RegionConstraint>();
+        constraint->A_link() = abstractRobot->rootLink();
+        constraint->A_localpos().translation() = cnoid::Vector3(0.1,0.0,0.0);
+        constraint->B_link() = abstractRobot->rootLink();
+        constraint->eval_link() = nullptr;
+        constraint->weightR().setZero();
+        constraint->C().resize(1,3);
+        constraint->C().insert(0,2) = 1.0;
+        constraint->dl().resize(1);
+        constraint->dl()[0] = -1e10;
+        constraint->du().resize(1);
+        constraint->du()[0] = 0.0;
+      }
       modes[mode->name]=mode;
     }
 

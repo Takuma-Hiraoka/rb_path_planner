@@ -284,7 +284,7 @@ namespace multicontact_locomotion_planner{
                                   targetRootPath[i].first[4],
                                   targetRootPath[i].first[5]);
         double dist = std::sqrt((subGoalp-targetp).squaredNorm() + std::pow(cnoid::AngleAxis(subGoalR.transpose()*targetR).angle()*param.subGoalRotScale,2));
-        if(dist <= std::max(0.0,subGoalFarDist - param.subGoalDistanceNear)) {
+        if(dist <= std::max(0.0,subGoalFarDist - param.subGoalDistanceNear)) { // ゴール直前での挙動に注意
           currentIdx = subGoalIdx = i;
           subGoalNearDist = subGoalFarDist - dist;
         }else{
