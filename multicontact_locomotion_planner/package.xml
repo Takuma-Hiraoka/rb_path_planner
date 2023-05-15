@@ -22,4 +22,5 @@
   <depend>moveit_core</depend>
   <depend>choreonoid_qhull</depend>
   <depend>global_inverse_kinematics_solver</depend>
+  <depend>rb_rrt_solver</depend>
 </package>

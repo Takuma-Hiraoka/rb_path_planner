@@ -14,7 +14,7 @@
 #include "world_common.h"
 
 namespace multicontact_locomotion_planner_sample{
-  void sample1_walk(){
+  void sample3_desk(){
     cnoid::BodyPtr obstacle;
     std::shared_ptr<multicontact_locomotion_planner::Environment> environment;
     generateStepWorld(obstacle, environment);
@@ -39,21 +39,6 @@ namespace multicontact_locomotion_planner_sample{
 
     cnoid::MeshGenerator meshGenerator;
 
-
-    std::vector<std::pair<std::vector<double>, std::string> > targetRootPath;
-    {
-      std::vector<double> currentAngle;
-      multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, currentAngle);
-      std::vector<double> angle;
-      multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, angle);
-      targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "biped"));
-      for(int i=0;i<7;i++){
-        robot->rootLink()->translation() += cnoid::Vector3(-0.05,0.0,0.0);
-        multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, angle);
-        targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "biped"));
-      }
-      multicontact_locomotion_planner::frame2Link(currentAngle, std::vector<cnoid::LinkPtr>{robot->rootLink()});
-    }
 
     std::unordered_map<std::string, std::shared_ptr<multicontact_locomotion_planner::Contact> > currentContacts;
     currentContacts["rleg"] = endEffectors["rleg"]->generateContact();
@@ -93,10 +78,24 @@ namespace multicontact_locomotion_planner_sample{
     param.debugLevel = 2;
 
     //param.robotIKInfo->pikParam.debugLevel = 2;
+    param.robotIKInfo->gikParam.viewer = viewer;
+    param.rbrrtParam.viewer = viewer;
+
+
+    std::vector<std::pair<std::vector<double>, std::string> > targetRootPath;
+    cnoid::Position goal = abstractRobot->rootLink()->T();
+    goal.translation() += cnoid::Vector3(1.5,0.0,0.4);
+    multicontact_locomotion_planner::solveRBRRT(environment,
+                                                goal,
+                                                param,
+                                                targetRootPath
+                                                );
+
+
 
     std::vector<std::vector<multicontact_locomotion_planner::RobotState> > path;
 
-    for(int i=0;i<10;i++){
+    for(int i=0;i<50;i++){
       std::vector<multicontact_locomotion_planner::RobotState> tmp_path;
       std::string swingEEF;
       multicontact_locomotion_planner::solveMLP(robot,
@@ -109,14 +108,25 @@ namespace multicontact_locomotion_planner_sample{
                                                 swingEEF,
                                                 param
                                                 );
+
+      prevSwingEEF = swingEEF;
       if(tmp_path.size() > 0) {
         path.push_back(tmp_path);
         currentContacts = tmp_path.back().contacts;
-        prevSwingEEF = swingEEF;
       }
+
+      cnoid::Vector3 targetp(targetRootPath.back().first[0],targetRootPath.back().first[1],targetRootPath.back().first[2]);
+      cnoid::Quaternion targetR(targetRootPath.back().first[6],
+                                targetRootPath.back().first[3],
+                                targetRootPath.back().first[4],
+                                targetRootPath.back().first[5]);
+      double dist = std::sqrt((robot->rootLink()->p()-targetp).squaredNorm() + std::pow(cnoid::AngleAxis(robot->rootLink()->R().transpose()*targetR).angle(),2));
+      if(dist < 0.1) break;
     }
 
     // main loop
+    viewer->objects(std::vector<cnoid::BodyPtr>{robot,obstacle,environment->largeSurfacesBody,environment->smallSurfacesBody,environment->graspsBody});
+
     for(int i=0;i<path.size();i++){
       for(int j=0;j<path[i].size();j++){
         multicontact_locomotion_planner::frame2Link(path[i][j].jointAngle,variables);
@@ -133,7 +143,7 @@ namespace multicontact_locomotion_planner_sample{
 
         viewer->drawObjects();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
       }
     }
 

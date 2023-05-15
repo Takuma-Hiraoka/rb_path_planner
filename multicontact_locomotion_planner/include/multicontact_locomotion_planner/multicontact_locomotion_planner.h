@@ -26,7 +26,7 @@ namespace multicontact_locomotion_planner{
       gikParam.range = 0.5; // 0.2よりも0.3の方が速い. sample一回につきprojectGoalを行うので、rangeはなるべく大きい方がいい.
       gikParam.delta = 0.4; // 大きければ大きいほど速いはずだが、干渉計算や補間の正確さが犠牲になる. 0.2だと正確. 0.4だと速い
       gikParam.goalBias = 0.2; // 0.05よりも0.2や0.3の方が速い. goalSampingはIKの変位が大きいので、この値が大きいとsample1回あたりの時間が長くなるデメリットもある.
-      gikParam.timeout = 30.0;
+      gikParam.timeout = 10.0;
       gikParam.projectCellSize = 0.2; // 0.05よりも0.1の方が速い. 0.3よりも0.2の方が速い? 2m * 2m * 2mの空間を動くとして、samplingを200個くらいまでにしたければ、cellの大きさもそれなりに大きくないとスカスカになってしまう.
       //gikParam.viewer = viewer;
       gikParam.drawLoop = 1;
@@ -47,12 +47,14 @@ namespace multicontact_locomotion_planner{
                          const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
                          const std::unordered_map<std::string, std::shared_ptr<Contact> >& nearContacts,
                          const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& targetConstraints,
+                         const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& bestEffortConstraints,
                          std::shared_ptr<std::vector<std::vector<double> > >& path
                          );
     bool solveGlobalIK(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
                        const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
                        const std::unordered_map<std::string, std::shared_ptr<Contact> >& nearContacts,
                        const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& targetConstraints,
+                       const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& bestEffortConstraints,
                        const cnoid::LinkPtr& projectLink,
                        const cnoid::Position& projectLocalPose,
                        std::shared_ptr<std::vector<std::vector<double> > >& path
@@ -76,11 +78,11 @@ namespace multicontact_locomotion_planner{
     std::unordered_map<std::string, std::shared_ptr<Mode> > modes;
     std::shared_ptr<RobotIKInfo> robotIKInfo = std::make_shared<RobotIKInfo>();
 
-
+    rb_rrt_solver::RBRRTParam rbrrtParam;
 
     double subGoalDistanceFar = 0.5;
-    double subGoalDistanceNear= 0.3;
-    double subGoalRotScale = 0.3; // 回転の重みを小さくしないと、subGoalDistanceNear内の点が見つからなかったり、translation的に不自然なsubGoalになったりする
+    double subGoalDistanceNear= 0.15;
+    double subGoalRotScale = 0.1; // 回転の重みを小さくしないと、subGoalDistanceNear内の点が見つからなかったり、translation的に不自然なsubGoalになったりする
   };
 
   bool solveMLP(const cnoid::BodyPtr currentRobot,
@@ -95,14 +97,11 @@ namespace multicontact_locomotion_planner{
                 const MLPParam& param
                 );
 
-  bool solveSwingTrajectory(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
-                            const std::unordered_map<std::string, std::shared_ptr<Contact> >& swingContacts,
-                            const std::vector<double>& subGoal,
-                            const std::shared_ptr<EndEffector>& targetEEF,
-                            std::shared_ptr<std::vector<std::vector<double> > >& path
-                            );
-
-
+  bool solveRBRRT(const std::shared_ptr<Environment>& environment,
+                  const cnoid::Position goal,
+                  const MLPParam& param,
+                  std::vector<std::pair<std::vector<double>, std::string> >& outputRootPath // angle, mode
+                  );
 };
 
 #endif

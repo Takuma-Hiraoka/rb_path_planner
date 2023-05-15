@@ -11,6 +11,7 @@
 #include <cnoid/Body>
 #include <ik_constraint2/ik_constraint2.h>
 #include <ik_constraint2_vclip/ik_constraint2_vclip.h>
+#include <rb_rrt_solver/rb_rrt_solver.h>
 
 namespace multicontact_locomotion_planner{
 
@@ -76,6 +77,7 @@ namespace multicontact_locomotion_planner{
   public:
     cnoid::Position pose = cnoid::Position::Identity();
     Eigen::Matrix<double, 3, Eigen::Dynamic> shape; // pose frame. 3xX [v1, v2, v3 ...] の凸形状
+    cnoid::Vector3 weightR = cnoid::Vector3::Ones(); // pose frame
     /*
       2D surface polygonの場合
           shapeのZ座標は0. Z座標+の方向が法線方向
@@ -97,18 +99,26 @@ namespace multicontact_locomotion_planner{
                                                                                                                                      false// propagate_negative_distances
                                                                                                                                      );
     std::vector<ContactableRegion> largeSurfaces;
+    cnoid::BodyPtr largeSurfacesBody = new cnoid::Body();
     std::vector<ContactableRegion> smallSurfaces;
+    cnoid::BodyPtr smallSurfacesBody = new cnoid::Body();
     std::vector<ContactableRegion> grasps;
+    cnoid::BodyPtr graspsBody = new cnoid::Body();
   };
 
   class Mode {
   public:
     std::string name;
+    double score = 1.0; // 大きい方を好む
 
     std::vector<std::string> eefs;
+    std::vector<std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> > reachabilityConstraintsSmall; // サイズと順番はeefsと同じ. A_linkがreachability. B_linkはplannerがセットする.
+    std::vector<std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> > reachabilityConstraintsLarge; // サイズと順番はeefsと同じ. A_linkがreachability. B_linkはplannerがセットする.
 
-    std::vector<std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> > reachabilityConstraints; // サイズと順番はeefsと同じ. A_linkがreachability
+    std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > rootConstraints; // root obstacle collision.
 
+  public:
+    std::shared_ptr<rb_rrt_solver::Condition> generateCondition(const std::unordered_map<std::string, std::shared_ptr<EndEffector> >& endEffectors, const std::shared_ptr<Environment>& environment);
   };
 };
 

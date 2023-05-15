@@ -8,6 +8,8 @@ find_package(catkin REQUIRED COMPONENTS
   multicontact_locomotion_planner
   roslib
   choreonoid_viewer
+  convex_polyhedron_intersection
+  choreonoid_qhull
   )
 find_package(choreonoid REQUIRED)
 find_package(ompl REQUIRED)
@@ -34,6 +36,7 @@ add_library(CnoidMultiContactLocomotionPlannerSamplePlugin SHARED
   src/world_common.cpp
   src/sample1_walk.cpp
   src/sample2_quad.cpp
+  src/sample3_desk.cpp
   )
 target_link_libraries(CnoidMultiContactLocomotionPlannerSamplePlugin
   ${catkin_LIBRARIES}

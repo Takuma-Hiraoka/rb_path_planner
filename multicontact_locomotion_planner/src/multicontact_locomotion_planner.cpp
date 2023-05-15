@@ -15,6 +15,7 @@ namespace multicontact_locomotion_planner{
                                     const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
                                     const std::unordered_map<std::string, std::shared_ptr<Contact> >& nearContacts,
                                     const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& targetConstraints,
+                                    const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& bestEffortConstraints,
                                     std::shared_ptr<std::vector<std::vector<double> > >& path
                                     ){
 
@@ -55,6 +56,7 @@ namespace multicontact_locomotion_planner{
 
     // nominal task
     std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints4 = this->nominalConstraints;
+    std::copy(bestEffortConstraints.begin(), bestEffortConstraints.end(), std::back_inserter(constraints4));
 
     std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > > constraints{constraints0,constraints1,constraints2,constraints3,constraints4};
     bool solved = prioritized_inverse_kinematics_solver2::solveIKLoop(variables,
@@ -88,6 +90,7 @@ namespace multicontact_locomotion_planner{
                                   const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
                                   const std::unordered_map<std::string, std::shared_ptr<Contact> >& nearContacts,
                                   const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& targetConstraints,
+                                  const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& bestEffortConstraints,
                                   const cnoid::LinkPtr& projectLink,
                                   const cnoid::Position& projectLocalPose,
                                   std::shared_ptr<std::vector<std::vector<double> > >& path
@@ -130,6 +133,7 @@ namespace multicontact_locomotion_planner{
 
     // nominal task
     std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > nominals = this->nominalConstraints;
+    std::copy(bestEffortConstraints.begin(), bestEffortConstraints.end(), std::back_inserter(nominals));
 
     std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > > constraints{constraints0,constraints1,constraints2};
 
@@ -178,7 +182,10 @@ namespace multicontact_locomotion_planner{
 
     // 今のroot位置から、target root pathのsubgoal点を見つける.
     int subGoalIdx = -1;
+    int currentIdx = -1;
     bool subGoalFound = false;
+    double subGoalFarDist = 0.0;
+    double subGoalNearDist = 0.0;
     for(int i=targetRootPath.size()-1;i>=0;i--){
       cnoid::Vector3 targetp(targetRootPath[i].first[0],targetRootPath[i].first[1],targetRootPath[i].first[2]);
       cnoid::Quaternion targetR(targetRootPath[i].first[6],
@@ -187,7 +194,8 @@ namespace multicontact_locomotion_planner{
                                 targetRootPath[i].first[5]);
       double dist = std::sqrt((currentRobot->rootLink()->p()-targetp).squaredNorm() + std::pow(cnoid::AngleAxis(currentRobot->rootLink()->R().transpose()*targetR).angle()*param.subGoalRotScale,2));
       if(dist <= param.subGoalDistanceFar) {
-        subGoalIdx = i;
+        currentIdx = subGoalIdx = i;
+        subGoalFarDist = subGoalNearDist = dist;
         subGoalFound = true;
         break;
       }
@@ -220,6 +228,7 @@ namespace multicontact_locomotion_planner{
                                                        currentContacts,
                                                        std::unordered_map<std::string, std::shared_ptr<Contact> >(),
                                                        targetConstraints,
+                                                       std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >(),
                                                        path);
       if(solved){
         outputPath.resize(path->size());
@@ -249,10 +258,6 @@ namespace multicontact_locomotion_planner{
     }
 
     // subGoalに可能な限り近づけたところで、再度今のroot位置から、target root pathのsubgoal点を見つける. (subGoalが前回のiterationよりも前に進んでいることが期待される)
-    subGoalIdx = -1;
-    subGoalFound = false;
-    double tmpMinDist = 1e10;
-    int tmpSubGoalIdx = -1;
     for(int i=targetRootPath.size()-1;i>=0;i--){
       cnoid::Vector3 targetp(targetRootPath[i].first[0],targetRootPath[i].first[1],targetRootPath[i].first[2]);
       cnoid::Quaternion targetR(targetRootPath[i].first[6],
@@ -260,19 +265,52 @@ namespace multicontact_locomotion_planner{
                                 targetRootPath[i].first[4],
                                 targetRootPath[i].first[5]);
       double dist = std::sqrt((currentRobot->rootLink()->p()-targetp).squaredNorm() + std::pow(cnoid::AngleAxis(currentRobot->rootLink()->R().transpose()*targetR).angle()*param.subGoalRotScale,2));
-      if(dist <= param.subGoalDistanceNear) {
-        subGoalIdx = i;
-        subGoalFound = true;
+      if(dist <= param.subGoalDistanceFar){
+        currentIdx = subGoalIdx = i;
+        subGoalFarDist = subGoalNearDist = dist;
         break;
       }
-      if(dist < tmpMinDist){
-        tmpMinDist = dist;
-        tmpSubGoalIdx = i;
+    }
+    {
+      cnoid::Vector3 subGoalp(targetRootPath[subGoalIdx].first[0],targetRootPath[subGoalIdx].first[1],targetRootPath[subGoalIdx].first[2]);
+      cnoid::Matrix3 subGoalR = cnoid::Quaternion(targetRootPath[subGoalIdx].first[6],
+                                                  targetRootPath[subGoalIdx].first[3],
+                                                  targetRootPath[subGoalIdx].first[4],
+                                                  targetRootPath[subGoalIdx].first[5]).toRotationMatrix();
+      for(int i=subGoalIdx;i>=0;i--){
+        cnoid::Vector3 targetp(targetRootPath[i].first[0],targetRootPath[i].first[1],targetRootPath[i].first[2]);
+        cnoid::Quaternion targetR(targetRootPath[i].first[6],
+                                  targetRootPath[i].first[3],
+                                  targetRootPath[i].first[4],
+                                  targetRootPath[i].first[5]);
+        double dist = std::sqrt((subGoalp-targetp).squaredNorm() + std::pow(cnoid::AngleAxis(subGoalR.transpose()*targetR).angle()*param.subGoalRotScale,2));
+        if(dist <= std::max(0.0,subGoalFarDist - param.subGoalDistanceNear)) {
+          currentIdx = subGoalIdx = i;
+          subGoalNearDist = subGoalFarDist - dist;
+        }else{
+          break;
+        }
       }
     }
-    if(!subGoalFound && tmpSubGoalIdx != -1){ // 緩和
-      subGoalIdx = tmpSubGoalIdx;
-      subGoalFound = true;
+    {
+      cnoid::Vector3 subGoalp(targetRootPath[subGoalIdx].first[0],targetRootPath[subGoalIdx].first[1],targetRootPath[subGoalIdx].first[2]);
+      cnoid::Matrix3 subGoalR = cnoid::Quaternion(targetRootPath[subGoalIdx].first[6],
+                                                  targetRootPath[subGoalIdx].first[3],
+                                                  targetRootPath[subGoalIdx].first[4],
+                                                  targetRootPath[subGoalIdx].first[5]).toRotationMatrix();
+      for(int i=subGoalIdx;i>=0;i--){
+        cnoid::Vector3 targetp(targetRootPath[i].first[0],targetRootPath[i].first[1],targetRootPath[i].first[2]);
+        cnoid::Quaternion targetR(targetRootPath[i].first[6],
+                                  targetRootPath[i].first[3],
+                                  targetRootPath[i].first[4],
+                                  targetRootPath[i].first[5]);
+        double dist = std::sqrt((subGoalp-targetp).squaredNorm() + std::pow(cnoid::AngleAxis(subGoalR.transpose()*targetR).angle()*param.subGoalRotScale,2));
+        if(dist <= subGoalNearDist) {
+          currentIdx = i;
+        }else{
+          break;
+        }
+      }
     }
     if(!subGoalFound){
       std::cerr << "[" << __FUNCTION__ << "] new subGoal is not found" << std::endl;
@@ -289,6 +327,20 @@ namespace multicontact_locomotion_planner{
     if(param.debugLevel>=2){
       std::cerr << "subGoalNear: " << subGoalIdx << " " << targetRootPath[subGoalIdx].second << " [" << targetRootPath[subGoalIdx].first[0] << " " << targetRootPath[subGoalIdx].first[1] << " " << targetRootPath[subGoalIdx].first[2] << " " << targetRootPath[subGoalIdx].first[3] << " " << targetRootPath[subGoalIdx].first[4] << " " << targetRootPath[subGoalIdx].first[5] << " " << targetRootPath[subGoalIdx].first[6] << "]" << std::endl;
     }
+
+    std::shared_ptr<ik_constraint2::PositionConstraint> subGoalConstraint = std::make_shared<ik_constraint2::PositionConstraint>();
+    subGoalConstraint->A_link() = param.robot->rootLink();
+    subGoalConstraint->B_link() = nullptr;
+    subGoalConstraint->B_localpos().translation()[0] = targetRootPath[subGoalIdx].first[0];
+    subGoalConstraint->B_localpos().translation()[1] = targetRootPath[subGoalIdx].first[1];
+    subGoalConstraint->B_localpos().translation()[2] = targetRootPath[subGoalIdx].first[2];
+    subGoalConstraint->B_localpos().linear() = cnoid::Quaternion(targetRootPath[subGoalIdx].first[6],
+                                                          targetRootPath[subGoalIdx].first[3],
+                                                          targetRootPath[subGoalIdx].first[4],
+                                                          targetRootPath[subGoalIdx].first[5]).toRotationMatrix();
+    subGoalConstraint->weight().head<3>() = 3 * cnoid::Vector3::Ones();
+    subGoalConstraint->weight().tail<3>() = 3 * cnoid::Vector3::Ones();
+    subGoalConstraint->precision() = 1e10; // always success.
 
     std::shared_ptr<Mode> targetMode = param.modes.find(targetRootPath[subGoalIdx].second)->second;
 
@@ -319,11 +371,11 @@ namespace multicontact_locomotion_planner{
     bool swingEEFFound = false;
     std::shared_ptr<Contact> breakContact = nullptr;
     std::shared_ptr<EndEffector> targetEEF = nullptr; // 次に接触させるEEF
-    std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> targetReachabilityConstraint;
+    std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> targetReachabilityConstraint; // large
     for(int i=0;i<targetMode->eefs.size();i++){
       if(currentContacts.find(targetMode->eefs[i]) == currentContacts.end()){
         targetEEF = param.endEffectors.find(targetMode->eefs[i])->second;
-        targetReachabilityConstraint = targetMode->reachabilityConstraints[i];
+        targetReachabilityConstraint = targetMode->reachabilityConstraintsLarge[i];
         for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it=currentContacts.begin(); it!=currentContacts.end();it++){
           if(targetEEF->limbLinks.find(it->second->link1) != targetEEF->limbLinks.end() ||
              targetEEF->limbLinks.find(it->second->link2) != targetEEF->limbLinks.end()){
@@ -369,27 +421,27 @@ namespace multicontact_locomotion_planner{
         if(nextEEFIdx >= targetMode->eefs.size()) nextEEFIdx -= targetMode->eefs.size();
 
         // 候補点に今の接触位置が含まれているなら、別のlimbへ
-        std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> reachabilityConstraint = targetMode->reachabilityConstraints[nextEEFIdx];
-        {
-          cnoid::MeshGenerator meshGenerator;
-          cnoid::LinkPtr tmpLink = new cnoid::Link();
-          tmpLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
-          cnoid::SgShapePtr shape = new cnoid::SgShape();
-          shape->setMesh(meshGenerator.generateBox(cnoid::Vector3(0.01,0.01,0.01)));
-          cnoid::SgGroupPtr group = new cnoid::SgGroup();
-          group->addChild(shape);
-          tmpLink->setShape(group);
-          tmpLink->T() = param.endEffectors.find(targetMode->eefs[nextEEFIdx])->second->parentLink->T() * param.endEffectors.find(targetMode->eefs[nextEEFIdx])->second->localPose;
+        // std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> reachabilityConstraint = targetMode->reachabilityConstraintsSmall[nextEEFIdx];
+        // {
+        //   cnoid::MeshGenerator meshGenerator;
+        //   cnoid::LinkPtr tmpLink = new cnoid::Link();
+        //   tmpLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
+        //   cnoid::SgShapePtr shape = new cnoid::SgShape();
+        //   shape->setMesh(meshGenerator.generateBox(cnoid::Vector3(0.01,0.01,0.01)));
+        //   cnoid::SgGroupPtr group = new cnoid::SgGroup();
+        //   group->addChild(shape);
+        //   tmpLink->setShape(group);
+        //   tmpLink->T() = param.endEffectors.find(targetMode->eefs[nextEEFIdx])->second->parentLink->T() * param.endEffectors.find(targetMode->eefs[nextEEFIdx])->second->localPose;
 
-          reachabilityConstraint->B_link() = tmpLink;
-        }
-        reachabilityConstraint->updateBounds();
-        if(!reachabilityConstraint->isSatisfied()){
-          continue;
-        }
+        //   reachabilityConstraint->B_link() = tmpLink;
+        // }
+        // reachabilityConstraint->updateBounds();
+        // if(!reachabilityConstraint->isSatisfied()){
+        //   continue;
+        // }
 
         targetEEF = param.endEffectors.find(targetMode->eefs[nextEEFIdx])->second;
-        targetReachabilityConstraint = targetMode->reachabilityConstraints[nextEEFIdx];
+        targetReachabilityConstraint = targetMode->reachabilityConstraintsLarge[nextEEFIdx];
         breakContact = currentContacts.find(targetMode->eefs[nextEEFIdx])->second;
         swingEEFFound = true;
         break;
@@ -409,6 +461,8 @@ namespace multicontact_locomotion_planner{
       return false;
     }
 
+    if(targetEEF) swingEEF = targetEEF->name; // ここでセットしておくことで、break, makeで失敗した場合に次のeefに移れる
+
     // breakするなら、
     std::shared_ptr<std::vector<std::vector<double> > > breakPath1 = std::make_shared<std::vector<std::vector<double> > >();
     std::shared_ptr<std::vector<std::vector<double> > > breakPath2 = std::make_shared<std::vector<std::vector<double> > >();
@@ -427,8 +481,9 @@ namespace multicontact_locomotion_planner{
                                                          currentContacts,
                                                          std::unordered_map<std::string, std::shared_ptr<Contact> >(),
                                                          targetConstraints,
+                                                         std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >{subGoalConstraint},
                                                          breakPath1);
-        if(!solved){
+        if(false/*!solved*/){ // 不正確でも良いので緩和
           std::cerr << "[" << __FUNCTION__ << "] breakPath is not found" << std::endl;
           frame2Link(currentAngle, variables);
           param.robot->calcForwardKinematics(false);
@@ -478,9 +533,10 @@ namespace multicontact_locomotion_planner{
                                                          currentContactsAfterBreak,
                                                          nearContacts,
                                                          targetConstraints,
+                                                         std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >{subGoalConstraint},
                                                          breakPath2);
 
-        if(!solved){
+        if(false/*!solved*/){ // always solved. 多少ずれていてもいいので
           std::cerr << "[" << __FUNCTION__ << "] post contact Path is not found" << std::endl;
           frame2Link(currentAngle, variables);
           param.robot->calcForwardKinematics(false);
@@ -517,7 +573,6 @@ namespace multicontact_locomotion_planner{
 
       // subGoalのroot位置のreachability内で環境接触候補点を絞る
       Eigen::Matrix<double, 3, Eigen::Dynamic> region = targetReachabilityConstraint->A_link()->T() * choreonoid_qhull::meshToEigen(targetReachabilityConstraint->A_link()->collisionShape());
-      std::cerr << "region" << region << std::endl;
       const std::vector<ContactableRegion>& candidate =
         (targetEEF->environmentType==EndEffector::EnvironmentType::LARGESURFACE) ? environment->largeSurfaces :
         (targetEEF->environmentType==EndEffector::EnvironmentType::SMALLSURFACE) ? environment->smallSurfaces :
@@ -527,7 +582,7 @@ namespace multicontact_locomotion_planner{
         Eigen::Matrix<double, 3, Eigen::Dynamic> shape = candidate[i].pose * candidate[i].shape;
         Eigen::MatrixXd intersection;
         bool solved = convex_polyhedron_intersection::intersection(shape, region, intersection);
-        if(solved && intersection.cols() > 0){      std::cerr << "intersection" << intersection << std::endl;
+        if(solved && intersection.cols() > 0){
           Eigen::Matrix<double, 3, Eigen::Dynamic> intersectionLocal = candidate[i].pose.inverse() * Eigen::Matrix<double, 3, Eigen::Dynamic>(intersection);
           targetRegion.push_back(candidate[i]);
           targetRegion.back().pose = targetRegion.back().pose * targetEEF->preContactOffset; // offsetだけずらす
@@ -556,6 +611,7 @@ namespace multicontact_locomotion_planner{
         constraint->B_localpos() = targetRegion[i].pose;
         constraint->eval_link() = nullptr;
         constraint->eval_localR() = targetRegion[i].pose.linear();
+        constraint->weightR() = targetRegion[i].weightR;
         constraint->setVertices(targetRegion[i].shape);
         goals.push_back(std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >{constraint});
       }
@@ -564,6 +620,7 @@ namespace multicontact_locomotion_planner{
                                            currentContactsAfterBreak,
                                            std::unordered_map<std::string, std::shared_ptr<Contact> >(),
                                            goals,
+                                           std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >{subGoalConstraint},
                                            targetEEF->parentLink,
                                            targetEEF->localPose,
                                            makePath1
@@ -617,6 +674,7 @@ namespace multicontact_locomotion_planner{
                                                        currentContactsAfterBreak,
                                                        nearContacts,
                                                        targetConstraints,
+                                                       std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >{subGoalConstraint},
                                                        makePath2);
 
       if(!solved){
@@ -688,8 +746,6 @@ namespace multicontact_locomotion_planner{
       outputPath.back().contacts = currentContactsAfterMake;
     }
 
-    if(targetEEF) swingEEF = targetEEF->name;
-
     multicontact_locomotion_planner::calcAssoc(param.assocs);
     param.abstractRobot->calcForwardKinematics(false);
     multicontact_locomotion_planner::calcHorizontal(param.horizontals);
@@ -698,14 +754,66 @@ namespace multicontact_locomotion_planner{
     return true;
   }
 
-  bool solveSwingTrajectory(const std::vector<cnoid::LinkPtr>& variables, // 0: variables
-                            const std::unordered_map<std::string, std::shared_ptr<Contact> >& swingContacts,
-                            const std::vector<double>& subGoal,
-                            const std::shared_ptr<EndEffector>& targetEEF,
-                            std::shared_ptr<std::vector<std::vector<double> > >& path
-                            ){
+  bool solveRBRRT(const std::shared_ptr<Environment>& environment,
+                  const cnoid::Position goal,
+                  const MLPParam& param,
+                  std::vector<std::pair<std::vector<double>, std::string> >& outputRootPath // angle, mode
+                  ){
+
+    std::vector<cnoid::LinkPtr> variables;
+    variables.push_back(param.abstractRobot->rootLink());
+
+    std::shared_ptr<rb_rrt_solver::ConditionOR> conditions = std::make_shared<rb_rrt_solver::ConditionOR>();
+    for(std::unordered_map<std::string, std::shared_ptr<Mode> >::const_iterator it=param.modes.begin(); it!=param.modes.end(); it++){
+      conditions->children.push_back(it->second->generateCondition(param.endEffectors, environment));
+    }
+
+    std::vector<double> goals;
+    {
+      cnoid::Position org = param.abstractRobot->rootLink()->T();
+      param.abstractRobot->rootLink()->T() = goal;
+      rb_rrt_solver::link2Frame(variables, goals);
+      param.abstractRobot->rootLink()->T() = org;
+    }
+
+
+    std::shared_ptr<std::vector<std::vector<double> > > path = std::make_shared<std::vector<std::vector<double> > >();
+    if(!rb_rrt_solver::solveRBRRT(variables,
+                                  param.horizontals,
+                                  conditions,
+                                  goals,
+                                  path,
+                                  param.rbrrtParam
+                                  )){
+      std::cerr << "solveRBRRT failed" << std::endl;
+      return false;
+    }
+
+    outputRootPath.resize(path->size());
+    std::string prevMode = "";
+    for(int i=0;i<path->size();i++){
+      outputRootPath[i].first = path->at(i);
+      frame2Link(path->at(i), variables);
+      param.abstractRobot->calcForwardKinematics(false);
+      multicontact_locomotion_planner::calcHorizontal(param.horizontals);
+      param.horizontalRobot->calcForwardKinematics(false);
+      double maxScore = -1;
+      int idx = 0;
+      for(std::unordered_map<std::string, std::shared_ptr<Mode> >::const_iterator it=param.modes.begin(); it!=param.modes.end(); it++){
+        if((it->second->score > maxScore || prevMode == it->first) &&
+           conditions->children[idx]->isValid()){
+          if(prevMode == it->first) {
+            outputRootPath[i].second = prevMode = it->first;
+            break;
+          }else{
+            maxScore = it->second->score;
+            outputRootPath[i].second = prevMode = it->first;
+          }
+        }
+        idx++;
+      }
+    }
+
     return true;
   }
-
-
 };

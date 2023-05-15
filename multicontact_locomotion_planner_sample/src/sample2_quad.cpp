@@ -83,6 +83,9 @@ namespace multicontact_locomotion_planner_sample{
     viewer->objects(abstractRobot);
     viewer->objects(horizontalRobot);
     viewer->objects(obstacle);
+    viewer->objects(environment->largeSurfacesBody);
+    viewer->objects(environment->smallSurfacesBody);
+    viewer->objects(environment->graspsBody);
 
     viewer->drawObjects();
 
@@ -102,8 +105,8 @@ namespace multicontact_locomotion_planner_sample{
     param.endEffectors = endEffectors;
     param.modes = modes;
     param.robotIKInfo = robotIKInfo;
-    param.debugLevel = 3;
-    //param.debugLevel = 2;
+    //param.debugLevel = 3;
+    param.debugLevel = 2;
 
     //param.robotIKInfo->pikParam.debugLevel = 2;
     param.robotIKInfo->gikParam.viewer = viewer;
@@ -155,7 +158,7 @@ namespace multicontact_locomotion_planner_sample{
 
         viewer->drawObjects();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
       }
     }
 
