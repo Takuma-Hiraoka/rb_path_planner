@@ -251,6 +251,8 @@ namespace multicontact_locomotion_planner{
     // subGoalに可能な限り近づけたところで、再度今のroot位置から、target root pathのsubgoal点を見つける. (subGoalが前回のiterationよりも前に進んでいることが期待される)
     subGoalIdx = -1;
     subGoalFound = false;
+    double tmpMinDist = 1e10;
+    int tmpSubGoalIdx = -1;
     for(int i=targetRootPath.size()-1;i>=0;i--){
       cnoid::Vector3 targetp(targetRootPath[i].first[0],targetRootPath[i].first[1],targetRootPath[i].first[2]);
       cnoid::Quaternion targetR(targetRootPath[i].first[6],
@@ -263,6 +265,14 @@ namespace multicontact_locomotion_planner{
         subGoalFound = true;
         break;
       }
+      if(dist < tmpMinDist){
+        tmpMinDist = dist;
+        tmpSubGoalIdx = i;
+      }
+    }
+    if(!subGoalFound && tmpSubGoalIdx != -1){ // 緩和
+      subGoalIdx = tmpSubGoalIdx;
+      subGoalFound = true;
     }
     if(!subGoalFound){
       std::cerr << "[" << __FUNCTION__ << "] new subGoal is not found" << std::endl;
