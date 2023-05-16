@@ -8,6 +8,7 @@
 #include <convex_polyhedron_intersection/convex_polyhedron_intersection.h>
 #include <choreonoid_qhull/choreonoid_qhull.h>
 #include <ik_constraint2_region_cdd/ik_constraint2_region_cdd.h>
+#include <scfr_solver/scfr_solver.h>
 
 namespace multicontact_locomotion_planner{
 
@@ -48,8 +49,8 @@ namespace multicontact_locomotion_planner{
       it->second->ikConstraint->B_localpos() = it->second->localPose2;
       constraints2.push_back(it->second->ikConstraint);
     }
-
-    // 重心実行可能領域TODO
+    this->updateCOMConstraint(currentContacts, this->comConstraint);
+    constraints2.push_back(this->comConstraint);
 
     // target task
     std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints3 = targetConstraints;
@@ -125,8 +126,8 @@ namespace multicontact_locomotion_planner{
       it->second->ikConstraint->B_localpos() = it->second->localPose2;
       constraints2.push_back(it->second->ikConstraint);
     }
-
-    // 重心実行可能領域TODO
+    this->updateCOMConstraint(currentContacts, this->comConstraint);
+    constraints2.push_back(this->comConstraint);
 
     // target task
     std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > > goals = targetConstraints;
@@ -158,6 +159,58 @@ namespace multicontact_locomotion_planner{
     return solved;
   }
 
+  void RobotIKInfo::updateCOMConstraint(const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts, std::shared_ptr<ik_constraint2::COMConstraint>& constraint){
+    std::vector<cnoid::Position> poses;
+    std::vector<Eigen::SparseMatrix<double,Eigen::RowMajor> > As;
+    std::vector<cnoid::VectorX> bs;
+    std::vector<Eigen::SparseMatrix<double,Eigen::RowMajor> > Cs;
+    std::vector<cnoid::VectorX> dls;
+    std::vector<cnoid::VectorX> dus;
+    for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it=currentContacts.begin();it!=currentContacts.end();it++){
+      if(((it->second->link1!=nullptr) && (it->second->link1->body() == this->robot)) &&
+         !((it->second->link2!=nullptr) && (it->second->link2->body() == this->robot))){
+        poses.push_back(it->second->link1->T() * it->second->localPose1);
+        As.emplace_back(0,6);
+        bs.emplace_back(0);
+        Cs.push_back(it->second->C);
+        dls.push_back(it->second->dl);
+        dus.push_back(it->second->du);
+      } else if(!((it->second->link1!=nullptr) && (it->second->link1->body() == this->robot)) &&
+                ((it->second->link2!=nullptr) && (it->second->link2->body() == this->robot))){
+        poses.push_back(it->second->link1 ? (it->second->link1->T() * it->second->localPose1) : it->second->localPose1);
+        As.emplace_back(0,6);
+        bs.emplace_back(0);
+        Cs.push_back(-it->second->C);
+        dls.push_back(it->second->dl);
+        dus.push_back(it->second->du);
+      }
+    }
+    Eigen::SparseMatrix<double,Eigen::RowMajor> M(0,2);
+    Eigen::VectorXd l;
+    Eigen::VectorXd u;
+    std::vector<Eigen::Vector2d> vertices;
+    scfr_solver::calcSCFR(poses,
+                          As,
+                          bs,
+                          Cs,
+                          dls,
+                          dus,
+                          this->robot->mass(),
+                          M,
+                          l,
+                          u,
+                          vertices
+                          );
+
+    Eigen::SparseMatrix<double,Eigen::ColMajor> C(M.rows(),3);
+    C.leftCols<2>() = M;
+
+    constraint->A_robot() = this->robot;
+    constraint->weight().setZero();
+    constraint->C() = C;
+    constraint->dl() = l;
+    constraint->du() = u;
+  }
 
   bool solveMLP(const cnoid::BodyPtr currentRobot,
                 const std::shared_ptr<Environment>& environment,
@@ -338,8 +391,8 @@ namespace multicontact_locomotion_planner{
                                                           targetRootPath[subGoalIdx].first[3],
                                                           targetRootPath[subGoalIdx].first[4],
                                                           targetRootPath[subGoalIdx].first[5]).toRotationMatrix();
-    subGoalConstraint->weight().head<3>() = 3 * cnoid::Vector3::Ones();
-    subGoalConstraint->weight().tail<3>() = 3 * cnoid::Vector3::Ones();
+    subGoalConstraint->weight().head<3>() = /*3 **/ cnoid::Vector3::Ones();
+    subGoalConstraint->weight().tail<3>() = /*3 **/ cnoid::Vector3::Ones();
     subGoalConstraint->precision() = 1e10; // always success.
 
     std::shared_ptr<Mode> targetMode = param.modes.find(targetRootPath[subGoalIdx].second)->second;
@@ -474,9 +527,12 @@ namespace multicontact_locomotion_planner{
         }
 
         // contact breakability check
-        // TODO
         std::shared_ptr<ik_constraint2::COMConstraint> constraint = std::make_shared<ik_constraint2::COMConstraint>();
-        std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > targetConstraints{};
+        std::unordered_map<std::string, std::shared_ptr<Contact> > targetContacts = currentContacts;
+        targetContacts.erase(breakContact->name);
+        param.robotIKInfo->updateCOMConstraint(targetContacts, constraint);
+        
+        std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > targetConstraints{constraint};
         bool solved = param.robotIKInfo->solveFullbodyIK(variables,
                                                          currentContacts,
                                                          std::unordered_map<std::string, std::shared_ptr<Contact> >(),

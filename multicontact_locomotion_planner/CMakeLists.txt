@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   choreonoid_qhull
   global_inverse_kinematics_solver
   rb_rrt_solver
+  scfr_solver
   )
 
 find_package(choreonoid REQUIRED)

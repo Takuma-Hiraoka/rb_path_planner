@@ -12,8 +12,8 @@ namespace multicontact_locomotion_planner{
     contact->localPose2 = this->parentLink->T() * this->localPose;
     contact->ikConstraint = this->ikConstraint;
     contact->C = this->C;
-    contact->ld = this->ld;
-    contact->ud = this->ud;
+    contact->dl = this->dl;
+    contact->du = this->du;
     contact->preContactOffset = this->preContactOffset;
     contact->ignoreLinks = this->ignoreLinks;
     contact->ignoreBoundingBox = this->ignoreBoundingBox;

@@ -49,12 +49,12 @@ namespace multicontact_locomotion_planner_sample{
       rootLink->setJointType(cnoid::Link::JointType::FREE_JOINT);
       {
         cnoid::SgShapePtr shape = new cnoid::SgShape();
-        shape->setMesh(meshGenerator.generateCylinder(0.25/*radius*/, 0.9/*height*/));
+        shape->setMesh(meshGenerator.generateCylinder(0.25/*radius*/, 1.1/*height*/));
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0.3);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0,0,0.35);
+        posTransform->translation() = cnoid::Vector3(0,0,0.3); // ある程度低くないといけない
         posTransform->rotation() = cnoid::AngleAxis(M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
@@ -388,6 +388,18 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->limbLinks.insert(robot->link("RLEG_HIP_Y"));
       endEffector->limbLinks.insert(robot->link("RLEG_HIP_P"));
       endEffector->limbLinks.insert(robot->link("RLEG_HIP_R"));
+      endEffector->dl = Eigen::VectorXd::Zero(11); endEffector->C.resize(11,6); endEffector->du = 1e10 * Eigen::VectorXd::Ones(11);
+      endEffector->C.insert(0,2) = 1.0; endEffector->du[0] = 2000.0;
+      endEffector->C.insert(1,0) = 1.0; endEffector->C.insert(1,2) = 0.2;
+      endEffector->C.insert(2,0) = -1.0; endEffector->C.insert(2,2) = 0.2;
+      endEffector->C.insert(3,1) = 1.0; endEffector->C.insert(3,2) = 0.2;
+      endEffector->C.insert(4,1) = -1.0; endEffector->C.insert(4,2) = 0.2;
+      endEffector->C.insert(5,2) = 0.05; endEffector->C.insert(5,3) = 1.0;
+      endEffector->C.insert(6,2) = 0.05; endEffector->C.insert(6,3) = -1.0;
+      endEffector->C.insert(7,2) = 0.12; endEffector->C.insert(7,4) = 1.0;
+      endEffector->C.insert(8,2) = 0.09; endEffector->C.insert(8,4) = -1.0;
+      endEffector->C.insert(9,2) = 0.005; endEffector->C.insert(9,5) = 1.0;
+      endEffector->C.insert(10,2) = 0.005; endEffector->C.insert(10,5) = -1.0;
       endEffectors[endEffector->name] = endEffector;
     }
     {
@@ -423,6 +435,18 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->limbLinks.insert(robot->link("LLEG_HIP_Y"));
       endEffector->limbLinks.insert(robot->link("LLEG_HIP_P"));
       endEffector->limbLinks.insert(robot->link("LLEG_HIP_R"));
+      endEffector->dl = Eigen::VectorXd::Zero(11); endEffector->C.resize(11,6); endEffector->du = 1e10 * Eigen::VectorXd::Ones(11);
+      endEffector->C.insert(0,2) = 1.0; endEffector->du[0] = 2000.0;
+      endEffector->C.insert(1,0) = 1.0; endEffector->C.insert(1,2) = 0.2;
+      endEffector->C.insert(2,0) = -1.0; endEffector->C.insert(2,2) = 0.2;
+      endEffector->C.insert(3,1) = 1.0; endEffector->C.insert(3,2) = 0.2;
+      endEffector->C.insert(4,1) = -1.0; endEffector->C.insert(4,2) = 0.2;
+      endEffector->C.insert(5,2) = 0.05; endEffector->C.insert(5,3) = 1.0;
+      endEffector->C.insert(6,2) = 0.05; endEffector->C.insert(6,3) = -1.0;
+      endEffector->C.insert(7,2) = 0.12; endEffector->C.insert(7,4) = 1.0;
+      endEffector->C.insert(8,2) = 0.09; endEffector->C.insert(8,4) = -1.0;
+      endEffector->C.insert(9,2) = 0.005; endEffector->C.insert(9,5) = 1.0;
+      endEffector->C.insert(10,2) = 0.005; endEffector->C.insert(10,5) = -1.0;
       endEffectors[endEffector->name] = endEffector;
     }
     {
@@ -460,6 +484,18 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->limbLinks.insert(robot->link("RARM_SHOULDER_Y"));
       endEffector->limbLinks.insert(robot->link("RARM_SHOULDER_R"));
       endEffector->limbLinks.insert(robot->link("RARM_SHOULDER_P"));
+      endEffector->dl = Eigen::VectorXd::Zero(11); endEffector->C.resize(11,6); endEffector->du = 1e10 * Eigen::VectorXd::Ones(11);
+      endEffector->C.insert(0,2) = 1.0; endEffector->du[0] = 2000.0;
+      endEffector->C.insert(1,0) = 1.0; endEffector->C.insert(1,2) = 0.2;
+      endEffector->C.insert(2,0) = -1.0; endEffector->C.insert(2,2) = 0.2;
+      endEffector->C.insert(3,1) = 1.0; endEffector->C.insert(3,2) = 0.2;
+      endEffector->C.insert(4,1) = -1.0; endEffector->C.insert(4,2) = 0.2;
+      endEffector->C.insert(5,2) = 0.0; endEffector->C.insert(5,3) = 1.0;
+      endEffector->C.insert(6,2) = 0.0; endEffector->C.insert(6,3) = -1.0;
+      endEffector->C.insert(7,2) = 0.0; endEffector->C.insert(7,4) = 1.0;
+      endEffector->C.insert(8,2) = 0.0; endEffector->C.insert(8,4) = -1.0;
+      endEffector->C.insert(9,2) = 0.0; endEffector->C.insert(9,5) = 1.0;
+      endEffector->C.insert(10,2) = 0.0; endEffector->C.insert(10,5) = -1.0;
       endEffectors[endEffector->name] = endEffector;
     }
     {
@@ -497,6 +533,18 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->limbLinks.insert(robot->link("LARM_SHOULDER_Y"));
       endEffector->limbLinks.insert(robot->link("LARM_SHOULDER_R"));
       endEffector->limbLinks.insert(robot->link("LARM_SHOULDER_P"));
+      endEffector->dl = Eigen::VectorXd::Zero(11); endEffector->C.resize(11,6); endEffector->du = 1e10 * Eigen::VectorXd::Ones(11);
+      endEffector->C.insert(0,2) = 1.0; endEffector->du[0] = 2000.0;
+      endEffector->C.insert(1,0) = 1.0; endEffector->C.insert(1,2) = 0.2;
+      endEffector->C.insert(2,0) = -1.0; endEffector->C.insert(2,2) = 0.2;
+      endEffector->C.insert(3,1) = 1.0; endEffector->C.insert(3,2) = 0.2;
+      endEffector->C.insert(4,1) = -1.0; endEffector->C.insert(4,2) = 0.2;
+      endEffector->C.insert(5,2) = 0.0; endEffector->C.insert(5,3) = 1.0;
+      endEffector->C.insert(6,2) = 0.0; endEffector->C.insert(6,3) = -1.0;
+      endEffector->C.insert(7,2) = 0.0; endEffector->C.insert(7,4) = 1.0;
+      endEffector->C.insert(8,2) = 0.0; endEffector->C.insert(8,4) = -1.0;
+      endEffector->C.insert(9,2) = 0.0; endEffector->C.insert(9,5) = 1.0;
+      endEffector->C.insert(10,2) = 0.0; endEffector->C.insert(10,5) = -1.0;
       endEffectors[endEffector->name] = endEffector;
     }
 
@@ -686,6 +734,7 @@ namespace multicontact_locomotion_planner_sample{
     }
 
     robotIKInfo = std::make_shared<multicontact_locomotion_planner::RobotIKInfo>();
+    robotIKInfo->robot = robot;
     {
       // task: joint limit
       for(int i=0;i<robot->numJoints();i++){

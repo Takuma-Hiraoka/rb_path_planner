@@ -27,8 +27,8 @@ namespace multicontact_locomotion_planner{
     std::shared_ptr<ik_constraint2::PositionConstraint> ikConstraint = std::make_shared<ik_constraint2::PositionConstraint>(); // A_localposeを変えないで、B_localposeを変更する
 
     Eigen::SparseMatrix<double,Eigen::RowMajor> C{0,6}; // localPose1 frame/origin. link1がlink2から受ける力に関する接触力制約. 列は6. C, ld, udの行数は同じ.
-    cnoid::VectorX ld;
-    cnoid::VectorX ud;
+    cnoid::VectorX dl;
+    cnoid::VectorX du;
 
     cnoid::Position preContactOffset = cnoid::Position::Identity(); // 接触の前後で、実際に接触する位置姿勢から、localpose1座標系でこの値だけoffsetした位置に、localpose1がまず移動する. ここから接触までの間は、直線的に移動しcollisionを許容する.
     // ignore boundingbox
@@ -46,8 +46,8 @@ namespace multicontact_locomotion_planner{
     cnoid::Position localPose;
     enum class EnvironmentType {LARGESURFACE, SMALLSURFACE, GRASP } environmentType = EnvironmentType::LARGESURFACE;
     Eigen::SparseMatrix<double,Eigen::RowMajor> C{0,6}; // localPose frame/origin. endeffectorが受ける力に関する接触力制約. 列は6. C, ld, udの行数は同じ.
-    cnoid::VectorX ld;
-    cnoid::VectorX ud;
+    cnoid::VectorX dl;
+    cnoid::VectorX du;
 
     std::shared_ptr<ik_constraint2::PositionConstraint> ikConstraint = std::make_shared<ik_constraint2::PositionConstraint>(); // A_linkがこのEEF
 

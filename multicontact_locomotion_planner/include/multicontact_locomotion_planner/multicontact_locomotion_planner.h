@@ -13,6 +13,7 @@ namespace multicontact_locomotion_planner{
 
   class RobotIKInfo {
   public:
+    cnoid::BodyPtr robot;
     std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > selfConstraints; // 自己干渉, 関節上下限
     std::vector<std::shared_ptr<ik_constraint2_distance_field::DistanceFieldCollisionConstraint> > envConstraints; // 環境干渉
     std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > nominalConstraints; // reset-manip-pose. 常にisSatisfied = trueであること
@@ -59,6 +60,11 @@ namespace multicontact_locomotion_planner{
                        const cnoid::Position& projectLocalPose,
                        std::shared_ptr<std::vector<std::vector<double> > >& path
                        );
+
+    void updateCOMConstraint(const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts, std::shared_ptr<ik_constraint2::COMConstraint>& constraint);
+
+  protected:
+    std::shared_ptr<ik_constraint2::COMConstraint> comConstraint = std::make_shared<ik_constraint2::COMConstraint>();
   };
 
   class MLPParam {
