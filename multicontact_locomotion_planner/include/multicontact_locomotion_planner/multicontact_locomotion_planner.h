@@ -86,9 +86,9 @@ namespace multicontact_locomotion_planner{
 
     rb_rrt_solver::RBRRTParam rbrrtParam;
 
-    double subGoalDistanceFar = 0.5;
+    double subGoalDistanceFar = 0.6;
     double subGoalDistanceNear= 0.15;
-    double subGoalRotScale = 0.3; // 回転の重みを小さくしないと、subGoalDistanceNear内の点が見つからなかったり、translation的に不自然なsubGoalになったりする
+    double subGoalRotScale = 0.1; // 回転の重みを小さくしないと、subGoalDistanceNear内の点が見つからなかったり、translation的に不自然なsubGoalになったりする
   };
 
   bool solveMLP(const cnoid::BodyPtr currentRobot,

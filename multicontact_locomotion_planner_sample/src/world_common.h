@@ -10,6 +10,10 @@ namespace multicontact_locomotion_planner_sample{
                          std::shared_ptr<multicontact_locomotion_planner::Environment>& environment
                          );
 
+  void generateLadderWorld(cnoid::BodyPtr& obstacle, // for visual
+                           std::shared_ptr<multicontact_locomotion_planner::Environment>& environment
+                           );
+
 };
 
 #endif

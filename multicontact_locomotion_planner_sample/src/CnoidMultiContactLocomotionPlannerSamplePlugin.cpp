@@ -31,6 +31,24 @@ namespace multicontact_locomotion_planner_sample{
   };
   typedef cnoid::ref_ptr<sample3_deskItem> sample3_deskItemPtr;
 
+  void sample4_ladder();
+  class sample4_ladderItem : public choreonoid_viewer::ViewerBaseItem {
+  public:
+    static void initializeClass(cnoid::ExtensionManager* ext){ ext->itemManager().registerClass<sample4_ladderItem>("sample4_ladderItem"); }
+  protected:
+    virtual void main() override{ sample4_ladder(); return; }
+  };
+  typedef cnoid::ref_ptr<sample4_ladderItem> sample4_ladderItemPtr;
+
+  void sample0_display();
+  class sample0_displayItem : public choreonoid_viewer::ViewerBaseItem {
+  public:
+    static void initializeClass(cnoid::ExtensionManager* ext){ ext->itemManager().registerClass<sample0_displayItem>("sample0_displayItem"); }
+  protected:
+    virtual void main() override{ sample0_display(); return; }
+  };
+  typedef cnoid::ref_ptr<sample0_displayItem> sample0_displayItemPtr;
+
   class MultiContactLocomotionPlannerSamplePlugin : public cnoid::Plugin
   {
   public:
@@ -41,9 +59,11 @@ namespace multicontact_locomotion_planner_sample{
     }
     virtual bool initialize() override
     {
+      sample0_displayItem::initializeClass(this);
       sample1_walkItem::initializeClass(this);
       sample2_quadItem::initializeClass(this);
       sample3_deskItem::initializeClass(this);
+      sample4_ladderItem::initializeClass(this);
       return true;
     }
   };

@@ -418,28 +418,50 @@ namespace multicontact_locomotion_planner{
 
 
     // 次にswingするeefを決める
-    //   まず、targetModeにあって、currentContactsに無いEEFを探して、makeさせる. このとき、同一limbに別のcurrentContactがあるなら、それをbreakする.
+    //   まず、targetModeにあって、currentContactsに無いEEFを探して、makeさせる. このとき、同一limbに別のcurrentContactがないものをまず探し、無いなら、それをbreakする.
     std::unordered_set<std::string> unBreakableContacts; // TODO
 
     bool swingEEFFound = false;
     std::shared_ptr<Contact> breakContact = nullptr;
     std::shared_ptr<EndEffector> targetEEF = nullptr; // 次に接触させるEEF
     std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> targetReachabilityConstraint; // large
-    for(int i=0;i<targetMode->eefs.size();i++){
-      if(currentContacts.find(targetMode->eefs[i]) == currentContacts.end()){
-        targetEEF = param.endEffectors.find(targetMode->eefs[i])->second;
-        targetReachabilityConstraint = targetMode->reachabilityConstraintsLarge[i];
-        for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it=currentContacts.begin(); it!=currentContacts.end();it++){
-          if(targetEEF->limbLinks.find(it->second->link1) != targetEEF->limbLinks.end() ||
-             targetEEF->limbLinks.find(it->second->link2) != targetEEF->limbLinks.end()){
-            breakContact = it->second;
-            targetEEF = nullptr;
-            targetReachabilityConstraint = nullptr;
+    if(!swingEEFFound){
+      for(int i=0;i<targetMode->eefs.size();i++){
+        if(currentContacts.find(targetMode->eefs[i]) == currentContacts.end()){
+          targetEEF = param.endEffectors.find(targetMode->eefs[i])->second;
+          targetReachabilityConstraint = targetMode->reachabilityConstraintsLarge[i];
+          for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it=currentContacts.begin(); it!=currentContacts.end();it++){
+            if(targetEEF->limbLinks.find(it->second->link1) != targetEEF->limbLinks.end() ||
+               targetEEF->limbLinks.find(it->second->link2) != targetEEF->limbLinks.end()){
+              targetEEF = nullptr;
+              targetReachabilityConstraint = nullptr;
+              break;
+            }
+          }
+          if(targetEEF){
+            swingEEFFound = true;
             break;
           }
         }
-        swingEEFFound = true;
-        break;
+      }
+    }
+    if(!swingEEFFound){
+      for(int i=0;i<targetMode->eefs.size();i++){
+        if(currentContacts.find(targetMode->eefs[i]) == currentContacts.end()){
+          targetEEF = param.endEffectors.find(targetMode->eefs[i])->second;
+          targetReachabilityConstraint = targetMode->reachabilityConstraintsLarge[i];
+          for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it=currentContacts.begin(); it!=currentContacts.end();it++){
+            if(targetEEF->limbLinks.find(it->second->link1) != targetEEF->limbLinks.end() ||
+               targetEEF->limbLinks.find(it->second->link2) != targetEEF->limbLinks.end()){
+              breakContact = it->second;
+              targetEEF = nullptr;
+              targetReachabilityConstraint = nullptr;
+              break;
+            }
+          }
+          swingEEFFound = true;
+          break;
+        }
       }
     }
     //   次に、targetModeに無くて、currentContactsにあるEEFを探して、breakさせる
