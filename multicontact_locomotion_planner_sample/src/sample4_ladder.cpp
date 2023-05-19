@@ -88,6 +88,7 @@ namespace multicontact_locomotion_planner_sample{
     goal.translation() += cnoid::Vector3(1.0,0.0,1.5);
     goal.linear() = cnoid::AngleAxis(M_PI/2, cnoid::Vector3::UnitY()).toRotationMatrix();
     multicontact_locomotion_planner::solveRBRRT(environment,
+                                                currentContacts,
                                                 goal,
                                                 param,
                                                 targetRootPath

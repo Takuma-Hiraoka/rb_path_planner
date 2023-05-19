@@ -233,6 +233,10 @@ namespace multicontact_locomotion_planner{
     std::vector<double> currentAngle;
     link2Frame(variables, currentAngle);
 
+
+    
+
+
     // 今のroot位置から、target root pathのsubgoal点を見つける.
     int subGoalIdx = -1;
     int currentIdx = -1;
@@ -833,6 +837,7 @@ namespace multicontact_locomotion_planner{
   }
 
   bool solveRBRRT(const std::shared_ptr<Environment>& environment,
+                  const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
                   const cnoid::Position goal,
                   const MLPParam& param,
                   std::vector<std::pair<std::vector<double>, std::string> >& outputRootPath // angle, mode
@@ -875,21 +880,52 @@ namespace multicontact_locomotion_planner{
       param.abstractRobot->calcForwardKinematics(false);
       multicontact_locomotion_planner::calcHorizontal(param.horizontals);
       param.horizontalRobot->calcForwardKinematics(false);
+
       double maxScore = -1;
       int idx = 0;
+      std::string failedEEF, excessEEF;
       for(std::unordered_map<std::string, std::shared_ptr<Mode> >::const_iterator it=param.modes.begin(); it!=param.modes.end(); it++){
         if((it->second->score > maxScore || prevMode == it->first) &&
            conditions->children[idx]->isValid()){
-          if(prevMode == it->first) {
-            outputRootPath[i].second = prevMode = it->first;
-            break;
-          }else{
-            maxScore = it->second->score;
-            outputRootPath[i].second = prevMode = it->first;
+          if(i!=0 || param.modes.find(it->first)->second->isContactSatisfied(currentContacts, failedEEF, excessEEF)) { // i = 0の場合、初期姿勢を満たしている必要がある.
+            if(prevMode == it->first) {
+              maxScore = it->second->score;
+              outputRootPath[i].second = prevMode = it->first;
+              break;
+            }else{
+              maxScore = it->second->score;
+              outputRootPath[i].second = prevMode = it->first;
+            }
           }
         }
         idx++;
       }
+      if(maxScore == -1){
+        std::cerr << __FUNCTION__ << "outputRooPath not found" << std::endl;
+        return false;
+      }
+    }
+
+    // 連続化
+    for(int i=0;i+1<outputRootPath.size();i++){
+      if(outputRootPath[i].second == "biped" && outputRootPath[i].second == "quadruped"){
+        outputRootPath.insert(outputRootPath.begin()+i+1, std::pair<std::vector<double>,std::string>(outputRootPath[i].first,"quadruped_large"));
+      }else if(outputRootPath[i].second == "biped" && outputRootPath[i].second == "grasp"){
+        outputRootPath.insert(outputRootPath.begin()+i+1, std::pair<std::vector<double>,std::string>(outputRootPath[i].first,"grasp_large"));
+      }else if(outputRootPath[i].second == "quadruped" && outputRootPath[i].second == "biped"){
+        outputRootPath.insert(outputRootPath.begin()+i+1, std::pair<std::vector<double>,std::string>(outputRootPath[i+1].first,"quadruped_large"));
+      }else if(outputRootPath[i].second == "quadruped" && outputRootPath[i].second == "grasp_large"){
+        outputRootPath.insert(outputRootPath.begin()+i+1, std::pair<std::vector<double>,std::string>(outputRootPath[i+1].first,"quadruped_large"));
+      }else if(outputRootPath[i].second == "grasp" && outputRootPath[i].second == "biped"){
+        outputRootPath.insert(outputRootPath.begin()+i+1, std::pair<std::vector<double>,std::string>(outputRootPath[i+1].first,"grasp_large"));
+      }else if(outputRootPath[i].second == "grasp" && outputRootPath[i].second == "quadruped_large"){
+        outputRootPath.insert(outputRootPath.begin()+i+1, std::pair<std::vector<double>,std::string>(outputRootPath[i+1].first,"grasp_large"));
+      }else if(outputRootPath[i].second == "quadruped_large" && outputRootPath[i].second == "grasp"){
+        outputRootPath.insert(outputRootPath.begin()+i+1, std::pair<std::vector<double>,std::string>(outputRootPath[i].first,"grasp_large"));
+      }else if(outputRootPath[i].second == "grasp_large" && outputRootPath[i].second == "quadruped"){
+        outputRootPath.insert(outputRootPath.begin()+i+1, std::pair<std::vector<double>,std::string>(outputRootPath[i].first,"quadruped_large"));
+      }
+
     }
 
     return true;

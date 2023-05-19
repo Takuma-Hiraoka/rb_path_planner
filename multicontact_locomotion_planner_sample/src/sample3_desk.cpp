@@ -86,6 +86,7 @@ namespace multicontact_locomotion_planner_sample{
     cnoid::Position goal = abstractRobot->rootLink()->T();
     goal.translation() += cnoid::Vector3(1.5,0.0,0.4);
     multicontact_locomotion_planner::solveRBRRT(environment,
+                                                currentContacts,
                                                 goal,
                                                 param,
                                                 targetRootPath

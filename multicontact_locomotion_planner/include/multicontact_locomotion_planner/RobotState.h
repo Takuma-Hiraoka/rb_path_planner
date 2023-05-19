@@ -119,6 +119,9 @@ namespace multicontact_locomotion_planner{
 
   public:
     std::shared_ptr<rb_rrt_solver::Condition> generateCondition(const std::unordered_map<std::string, std::shared_ptr<EndEffector> >& endEffectors, const std::shared_ptr<Environment>& environment);
+
+    bool isContactSatisfied(const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
+                            std::string& failedEEF, std::string& excessEEF);
   };
 };
 

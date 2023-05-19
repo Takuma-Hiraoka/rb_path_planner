@@ -1070,6 +1070,130 @@ namespace multicontact_locomotion_planner_sample{
       modes[mode->name]=mode;
     }
 
+    {
+      std::shared_ptr<multicontact_locomotion_planner::Mode> mode = std::make_shared<multicontact_locomotion_planner::Mode>();
+      mode->name = "quadruped_large";
+      mode->score = 9.0;
+      {
+        mode->eefs.push_back("rleg");
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = horizontalRobot->link("RLEG");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsLarge.push_back(constraint);
+        }
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = horizontalRobot->link("RLEGSMALL");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsSmall.push_back(constraint);
+        }
+      }
+      {
+        mode->eefs.push_back("rarm");
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = abstractRobot->link("RARM");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsLarge.push_back(constraint);
+        }
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = abstractRobot->link("RARMSMALL");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsSmall.push_back(constraint);
+        }
+      }
+      {
+        mode->eefs.push_back("lleg");
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = horizontalRobot->link("LLEG");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsLarge.push_back(constraint);
+        }
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = horizontalRobot->link("LLEGSMALL");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsSmall.push_back(constraint);
+        }
+      }
+      {
+        mode->eefs.push_back("larm");
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = abstractRobot->link("LARM");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsLarge.push_back(constraint);
+        }
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = abstractRobot->link("LARMSMALL");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsSmall.push_back(constraint);
+        }
+      }
+      {
+        // root collision
+        std::shared_ptr<ik_constraint2_distance_field::DistanceFieldCollisionConstraint> constraint = std::make_shared<ik_constraint2_distance_field::DistanceFieldCollisionConstraint>();
+        constraint->A_link() = abstractRobot->rootLink();
+        constraint->field() = field;
+        constraint->tolerance() = 0.04;
+        constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
+        mode->rootConstraints.push_back(constraint);
+      }
+      {
+        // 前傾
+        std::shared_ptr<ik_constraint2::RegionConstraint> constraint = std::make_shared<ik_constraint2::RegionConstraint>();
+        constraint->A_link() = abstractRobot->rootLink();
+        constraint->A_localpos().translation() = cnoid::Vector3(0.1,0.0,0.0);
+        constraint->B_link() = abstractRobot->rootLink();
+        constraint->eval_link() = nullptr;
+        constraint->weightR().setZero();
+        constraint->C().resize(1,3);
+        constraint->C().insert(0,2) = 1.0;
+        constraint->dl().resize(1);
+        constraint->dl()[0] = -1e10;
+        constraint->du().resize(1);
+        constraint->du()[0] = 0.0;
+        mode->rootConstraints.push_back(constraint);
+      }
+      modes[mode->name]=mode;
+    }
+
 
     {
       std::shared_ptr<multicontact_locomotion_planner::Mode> mode = std::make_shared<multicontact_locomotion_planner::Mode>();
@@ -1123,6 +1247,130 @@ namespace multicontact_locomotion_planner_sample{
       }
       {
         mode->eefs.push_back("ltoe");
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = abstractRobot->link("LLEG");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsLarge.push_back(constraint);
+        }
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = abstractRobot->link("LLEGSMALL");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsSmall.push_back(constraint);
+        }
+      }
+      {
+        mode->eefs.push_back("lhand");
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = abstractRobot->link("LARM");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsLarge.push_back(constraint);
+        }
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = abstractRobot->link("LARMSMALL");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsSmall.push_back(constraint);
+        }
+      }
+      {
+        // root collision
+        std::shared_ptr<ik_constraint2_distance_field::DistanceFieldCollisionConstraint> constraint = std::make_shared<ik_constraint2_distance_field::DistanceFieldCollisionConstraint>();
+        constraint->A_link() = abstractRobot->rootLink();
+        constraint->field() = field;
+        constraint->tolerance() = 0.04;
+        constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
+        mode->rootConstraints.push_back(constraint);
+      }
+      {
+        // 前傾
+        std::shared_ptr<ik_constraint2::RegionConstraint> constraint = std::make_shared<ik_constraint2::RegionConstraint>();
+        constraint->A_link() = abstractRobot->rootLink();
+        constraint->A_localpos().translation() = cnoid::Vector3(0.1,0.0,0.0);
+        constraint->B_link() = abstractRobot->rootLink();
+        constraint->eval_link() = nullptr;
+        constraint->weightR().setZero();
+        constraint->C().resize(1,3);
+        constraint->C().insert(0,2) = 1.0;
+        constraint->dl().resize(1);
+        constraint->dl()[0] = -1e10;
+        constraint->du().resize(1);
+        constraint->du()[0] = 0.0;
+        mode->rootConstraints.push_back(constraint);
+      }
+      modes[mode->name]=mode;
+    }
+
+    {
+      std::shared_ptr<multicontact_locomotion_planner::Mode> mode = std::make_shared<multicontact_locomotion_planner::Mode>();
+      mode->name = "grasp_large";
+      mode->score = 8.0;
+      {
+        mode->eefs.push_back("rleg");
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = abstractRobot->link("RLEG");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsLarge.push_back(constraint);
+        }
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = abstractRobot->link("RLEGSMALL");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsSmall.push_back(constraint);
+        }
+      }
+      {
+        mode->eefs.push_back("rhand");
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = abstractRobot->link("RARM");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsLarge.push_back(constraint);
+        }
+        {
+          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          constraint->A_link() = abstractRobot->link("RARMSMALL");
+          constraint->B_link() = constraint->A_link(); // dummy
+          constraint->tolerance() = 0.01;
+          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->debugLevel() = 0;
+          constraint->updateBounds(); // キャッシュを内部に作る.
+          mode->reachabilityConstraintsSmall.push_back(constraint);
+        }
+      }
+      {
+        mode->eefs.push_back("lleg");
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LLEG");

@@ -104,10 +104,12 @@ namespace multicontact_locomotion_planner{
                 );
 
   bool solveRBRRT(const std::shared_ptr<Environment>& environment,
+                  const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
                   const cnoid::Position goal,
                   const MLPParam& param,
                   std::vector<std::pair<std::vector<double>, std::string> >& outputRootPath // angle, mode
                   );
+
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include <multicontact_locomotion_planner/RobotState.h>
+#include <cnoid/MeshGenerator>
 
 namespace multicontact_locomotion_planner{
 
@@ -46,5 +47,54 @@ namespace multicontact_locomotion_planner{
       conditions->children.push_back(condition2);
     }
     return conditions;
+  }
+
+  bool Mode::isContactSatisfied(const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
+                                std::string& failedEEF, std::string& excessEEF){
+    int numFailed = 0;
+    std::string failedEEF_;
+    for(int i=0;i<eefs.size() && numFailed<2;i++){
+      std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = this->reachabilityConstraintsLarge[i];
+
+      if(currentContacts.find(eefs[i]) == currentContacts.end()){
+        numFailed++;
+        failedEEF_ = eefs[i];
+      }else{
+        cnoid::MeshGenerator meshGenerator;
+        cnoid::LinkPtr tmpLink = new cnoid::Link();
+        tmpLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
+        cnoid::SgShapePtr shape = new cnoid::SgShape();
+        shape->setMesh(meshGenerator.generateBox(cnoid::Vector3(0.001,0.001,0.001)));
+        cnoid::SgGroupPtr group = new cnoid::SgGroup();
+        group->addChild(shape);
+        tmpLink->setShape(group);
+        tmpLink->T() = currentContacts.find(eefs[i])->second->link1->T() * currentContacts.find(eefs[i])->second->localPose1;
+        constraint->B_link() = tmpLink;
+      }
+      constraint->updateBounds();
+      if(constraint->isSatisfied()){
+        numFailed++;
+        failedEEF_ = eefs[i];
+      }
+    }
+
+    int numExcess = 0;
+    std::string excessEEF_;
+    for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it=currentContacts.begin();it!=currentContacts.end() && numExcess<2;it++){
+      if(std::find(eefs.begin(),eefs.end(),it->first) == eefs.end()){
+        numExcess++;
+        excessEEF_ = it->first;
+      }
+    }
+
+    if(numFailed + numExcess < 2){
+      failedEEF = failedEEF_;
+      excessEEF = excessEEF_;
+      return true;
+    }else{
+      failedEEF = "";
+      excessEEF = "";
+      return false;
+    }
   }
 }
