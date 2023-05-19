@@ -21,7 +21,7 @@ namespace multicontact_locomotion_planner{
     std::vector<std::shared_ptr<prioritized_qp_base::Task> > tasks;
     global_inverse_kinematics_solver::GIKParam gikParam;
     RobotIKInfo() {
-      pikParam.we = 1e2;
+      pikParam.we = 3e2; // 1e2だと解けないときに振動する
       pikParam.maxIteration = 100;
 
       gikParam.range = 0.5; // 0.2よりも0.3の方が速い. sample一回につきprojectGoalを行うので、rangeはなるべく大きい方がいい.

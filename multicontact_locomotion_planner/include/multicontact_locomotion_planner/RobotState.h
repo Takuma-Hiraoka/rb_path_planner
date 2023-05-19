@@ -122,7 +122,9 @@ namespace multicontact_locomotion_planner{
 
     bool isContactSatisfied(const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
                             bool isLarge,
-                            std::string& failedEEF, std::string& excessContact);
+                            std::vector<std::string>& moveEEF,
+                            std::vector<std::string>& newEEF,
+                            std::vector<std::string>& excessContact);
   };
 };
 

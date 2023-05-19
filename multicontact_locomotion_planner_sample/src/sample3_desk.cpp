@@ -80,6 +80,7 @@ namespace multicontact_locomotion_planner_sample{
     //param.robotIKInfo->pikParam.debugLevel = 2;
     param.robotIKInfo->gikParam.viewer = viewer;
     param.rbrrtParam.viewer = viewer;
+    param.robotIKInfo->gikParam.threads = 10;
 
 
     std::vector<std::pair<std::vector<double>, std::string> > targetRootPath;

@@ -442,8 +442,10 @@ namespace multicontact_locomotion_planner_sample{
         regionGrasp.shape.resize(3,2);
         regionGrasp.shape.col(0) = cnoid::Vector3(+0.48,0.0,0.0);
         regionGrasp.shape.col(1) = cnoid::Vector3(-0.48,0.0,0.0);
-        regionGrasp.weightR = cnoid::Vector3(1,1,1);
+        regionGrasp.weightR = cnoid::Vector3(0,1,1);
         environment->grasps.push_back(regionGrasp);
+        regionGrasp.pose.linear() *= -1;
+        environment->grasps.push_back(regionGrasp); // X軸反転
 
         cnoid::LinkPtr link = new cnoid::Link();
         cnoid::SgShapePtr shape = new cnoid::SgShape();

@@ -237,8 +237,7 @@ namespace multicontact_locomotion_planner{
     rootPathVariables.push_back(param.abstractRobot->rootLink());
 
     // 今のcontactから、target root pathのsubgoal点を見つける.
-    std::string failedEEF;
-    std::string excessContact;
+    std::vector<std::string> moveEEF, newEEF, excessContact;
     double currentIdx = -1;
     for(int i=targetRootPath.size()-1;i>=0;i--){
 
@@ -247,7 +246,7 @@ namespace multicontact_locomotion_planner{
       multicontact_locomotion_planner::calcHorizontal(param.horizontals);
       param.horizontalRobot->calcForwardKinematics(false);
 
-      if(param.modes.find(targetRootPath[i].second)->second->isContactSatisfied(currentContacts, true, failedEEF, excessContact)){
+      if(param.modes.find(targetRootPath[i].second)->second->isContactSatisfied(currentContacts, true, moveEEF, newEEF, excessContact)){
         currentIdx = i;
         break;
       }
@@ -261,7 +260,13 @@ namespace multicontact_locomotion_planner{
 
     if(param.debugLevel>=2){
       std::cerr << "current: " << currentIdx << " " << targetRootPath[currentIdx].second << " [" << targetRootPath[currentIdx].first[0] << " " << targetRootPath[currentIdx].first[1] << " " << targetRootPath[currentIdx].first[2] << " " << targetRootPath[currentIdx].first[3] << " " << targetRootPath[currentIdx].first[4] << " " << targetRootPath[currentIdx].first[5] << " " << targetRootPath[currentIdx].first[6] << "]" << std::endl;
-      std::cerr << "failedEEF " << failedEEF << " excessContact " << excessContact << std::endl;
+      std::cerr << " newEEF";
+      for(int i=0;i<newEEF.size();i++) std::cerr << " " << newEEF[i];
+      std::cerr << " excessContact";
+      for(int i=0;i<excessContact.size();i++) std::cerr << " " << excessContact[i];
+      std::cerr << " moveEEF";
+      for(int i=0;i<moveEEF.size();i++) std::cerr << " " << moveEEF[i];
+      std::cerr << std::endl;
     }
 
     bool swingEEFFound = false;
@@ -269,47 +274,83 @@ namespace multicontact_locomotion_planner{
     std::shared_ptr<EndEffector> targetEEF = nullptr; // 次に接触させるEEF
     std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> targetReachabilityConstraint; // large
     int subGoalIdx = -1;
+    std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> currentReachabilityConstraint; // large
 
-    if(excessContact != ""){
-      // 不要なContactをbreakさせる
-      breakContact = currentContacts.find(excessContact)->second;
-      subGoalIdx = currentIdx;
-      swingEEFFound = true;
-
-    }else if(failedEEF != ""){ // 届かないcontactをswingする
-      if(currentContacts.find(failedEEF) != currentContacts.end()){
-        breakContact = currentContacts.find(failedEEF)->second;
-      }
-      targetEEF = param.endEffectors.find(failedEEF)->second;
+    if(newEEF.size() > 0){ // 足りないcontactをmakeする
+      targetEEF = param.endEffectors.find(newEEF[0])->second;
       std::shared_ptr<Mode> targetMode = param.modes.find(targetRootPath[currentIdx].second)->second;
-      targetReachabilityConstraint = targetMode->reachabilityConstraintsLarge[std::find(targetMode->eefs.begin(),targetMode->eefs.end(),failedEEF) - targetMode->eefs.begin()];
+      targetReachabilityConstraint = targetMode->reachabilityConstraintsLarge[std::find(targetMode->eefs.begin(),targetMode->eefs.end(),newEEF[0]) - targetMode->eefs.begin()];
+      subGoalIdx = currentIdx;
+      for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it=currentContacts.begin(); it!=currentContacts.end();it++){
+        if(targetEEF->limbLinks.find(it->second->link1) != targetEEF->limbLinks.end() ||
+           targetEEF->limbLinks.find(it->second->link2) != targetEEF->limbLinks.end()){
+          breakContact = it->second;
+          break;
+        }
+      }
+      swingEEFFound = true;
+
+    }else if(excessContact.size() > 0){
+      // 不要なContactをbreakさせる
+      breakContact = currentContacts.find(excessContact[0])->second;
       subGoalIdx = currentIdx;
       swingEEFFound = true;
-    }else{ // last or 次idxでfail/excessが2以上
+
+    }else if(moveEEF.size() > 0){ // 届かないcontactをswingする
+      breakContact = currentContacts.find(moveEEF[0])->second;
+      targetEEF = param.endEffectors.find(moveEEF[0])->second;
+      std::shared_ptr<Mode> targetMode = param.modes.find(targetRootPath[currentIdx].second)->second;
+      targetReachabilityConstraint = targetMode->reachabilityConstraintsLarge[std::find(targetMode->eefs.begin(),targetMode->eefs.end(),moveEEF[0]) - targetMode->eefs.begin()];
+      subGoalIdx = currentIdx;
+      swingEEFFound = true;
+
+    }else{ // last or 次idxでmove/fail/excessが2以上
       if(currentIdx+1 == targetRootPath.size()){
         std::cerr << "solved without contact transition" << param.robot->rootLink()->p().transpose() << std::endl;
         return true;
       }
 
-      std::string nextFailedEEF; // のうちの一つ
-      std::string nextExcessContact; // のうちの一つ
+      std::vector<std::string> moveEEFnext, newEEFnext, excessContactnext;
 
       frame2Link(targetRootPath[currentIdx+1].first, rootPathVariables);
       param.abstractRobot->calcForwardKinematics(false);
       multicontact_locomotion_planner::calcHorizontal(param.horizontals);
       param.horizontalRobot->calcForwardKinematics(false);
 
-      param.modes.find(targetRootPath[currentIdx+1].second)->second->isContactSatisfied(currentContacts, true, nextFailedEEF, nextExcessContact);
+      param.modes.find(targetRootPath[currentIdx+1].second)->second->isContactSatisfied(currentContacts, true, moveEEFnext, newEEFnext, excessContactnext);
 
       if(param.debugLevel>=2){
-        std::cerr << "nextFailedEEF " << nextFailedEEF << " nextExcessContact " << nextExcessContact << std::endl;
+        std::cerr << " newEEFnext";
+        for(int i=0;i<newEEFnext.size();i++) std::cerr << " " << newEEFnext[i];
+        std::cerr << " excessContactnext";
+        for(int i=0;i<excessContactnext.size();i++) std::cerr << " " << excessContactnext[i];
+        std::cerr << " moveEEFnext";
+        for(int i=0;i<moveEEFnext.size();i++) std::cerr << " " << moveEEFnext[i];
+        std::cerr << std::endl;
       }
 
-      if(nextFailedEEF != ""){
-        // 次pointでsustainableなregionに接触させる. 前進はしないが、次pointでfailedEEFが一つ減る
-        targetEEF = param.endEffectors.find(nextFailedEEF)->second;
+      if(moveEEFnext.size() > 0){
+        int idx = 0;
+        for(;idx+1<moveEEFnext.size();idx++){
+          if(moveEEFnext[idx] != prevSwingEEF) break;
+        }
+
+        // moveEEFnextをnextのregionとcurrentのregionの共通部分に移せば、次はmoveEEFnextが一つ減る.
+        breakContact = currentContacts.find(moveEEFnext[idx])->second;
+        targetEEF = param.endEffectors.find(moveEEFnext[idx])->second;
         std::shared_ptr<Mode> targetMode = param.modes.find(targetRootPath[currentIdx+1].second)->second;
-        targetReachabilityConstraint = targetMode->reachabilityConstraintsLarge[std::find(targetMode->eefs.begin(),targetMode->eefs.end(),nextFailedEEF) - targetMode->eefs.begin()];
+        targetReachabilityConstraint = targetMode->reachabilityConstraintsLarge[std::find(targetMode->eefs.begin(),targetMode->eefs.end(),moveEEFnext[idx]) - targetMode->eefs.begin()];
+        subGoalIdx = currentIdx + 1;
+        std::shared_ptr<Mode> currentMode = param.modes.find(targetRootPath[currentIdx].second)->second;
+        currentReachabilityConstraint = currentMode->reachabilityConstraintsLarge[std::find(currentMode->eefs.begin(),currentMode->eefs.end(),moveEEFnext[idx]) - currentMode->eefs.begin()];
+        swingEEFFound = true;
+
+        // rootpathの定義より、newEEFNext <=2 && excessContactnext <= 2. newEEFnextがあるなら、excessContactnextはあったとしてもlimblinkに含まれる
+      }else if(newEEFnext.size() > 0){
+        // nextのregionに接触させる.次はnextへ進む
+        targetEEF = param.endEffectors.find(newEEFnext[0])->second;
+        std::shared_ptr<Mode> targetMode = param.modes.find(targetRootPath[currentIdx+1].second)->second;
+        targetReachabilityConstraint = targetMode->reachabilityConstraintsLarge[std::find(targetMode->eefs.begin(),targetMode->eefs.end(),newEEFnext[0]) - targetMode->eefs.begin()];
         subGoalIdx = currentIdx + 1;
         for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it=currentContacts.begin(); it!=currentContacts.end();it++){
           if(targetEEF->limbLinks.find(it->second->link1) != targetEEF->limbLinks.end() ||
@@ -319,12 +360,13 @@ namespace multicontact_locomotion_planner{
           }
         }
         swingEEFFound = true;
+
       }else{
-        breakContact = currentContacts.find(nextExcessContact)->second;
+        // excesssContactnextをbreakする. 次はnextへ進む
+        breakContact = currentContacts.find(excessContactnext[0])->second;
         subGoalIdx = currentIdx;
         swingEEFFound = true;
       }
-
     }
 
     if(!swingEEFFound){
@@ -401,7 +443,7 @@ namespace multicontact_locomotion_planner{
                                                          targetConstraints,
                                                          std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >{subGoalConstraint},
                                                          breakPath1);
-        if(false/*!solved*/){ // 不正確でも良いので緩和
+        if(false/*!solved*/){ // 不正確でも良いので緩和. TODO緩和してはいけない
           std::cerr << "[" << __FUNCTION__ << "] breakPath is not found" << std::endl;
           frame2Link(currentAngle, variables);
           param.robot->calcForwardKinematics(false);
@@ -440,9 +482,9 @@ namespace multicontact_locomotion_planner{
 
         std::shared_ptr<ik_constraint2::PositionConstraint> constraint = std::make_shared<ik_constraint2::PositionConstraint>();
         constraint->A_link() = breakContact->link1;
-        constraint->A_localpos() = breakContact->localPose1;
+        constraint->A_localpos() = breakContact->localPose1 * breakContact->preContactOffset.inverse();
         constraint->B_link() = breakContact->link2;
-        constraint->B_localpos() = breakContact->localPose2 * breakContact->preContactOffset;
+        constraint->B_localpos() = breakContact->localPose2;
 
         std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > targetConstraints{constraint};
         std::unordered_map<std::string, std::shared_ptr<Contact> > nearContacts;
@@ -491,6 +533,22 @@ namespace multicontact_locomotion_planner{
 
       // subGoalのroot位置のreachability内で環境接触候補点を絞る
       Eigen::Matrix<double, 3, Eigen::Dynamic> region = targetReachabilityConstraint->A_link()->T() * choreonoid_qhull::meshToEigen(targetReachabilityConstraint->A_link()->collisionShape());
+
+      if(currentReachabilityConstraint){ // modeが違うとregionの形状も違う
+        multicontact_locomotion_planner::frame2Link(targetRootPath[currentIdx].first, std::vector<cnoid::LinkPtr>{param.abstractRobot->rootLink()});
+        param.abstractRobot->calcForwardKinematics(false);
+        multicontact_locomotion_planner::calcHorizontal(param.horizontals);
+        param.horizontalRobot->calcForwardKinematics(false);
+        Eigen::Matrix<double, 3, Eigen::Dynamic> region2 = currentReachabilityConstraint->A_link()->T() * choreonoid_qhull::meshToEigen(currentReachabilityConstraint->A_link()->collisionShape());
+        Eigen::MatrixXd intersection;
+        convex_polyhedron_intersection::intersection(region, region2, intersection);
+        region = intersection;
+
+        multicontact_locomotion_planner::frame2Link(targetRootPath[subGoalIdx].first, std::vector<cnoid::LinkPtr>{param.abstractRobot->rootLink()});
+        param.abstractRobot->calcForwardKinematics(false);
+        multicontact_locomotion_planner::calcHorizontal(param.horizontals);
+        param.horizontalRobot->calcForwardKinematics(false);
+      }
       const std::vector<ContactableRegion>& candidate =
         (targetEEF->environmentType==EndEffector::EnvironmentType::LARGESURFACE) ? environment->largeSurfaces :
         (targetEEF->environmentType==EndEffector::EnvironmentType::SMALLSURFACE) ? environment->smallSurfaces :
@@ -503,7 +561,7 @@ namespace multicontact_locomotion_planner{
         if(solved && intersection.cols() > 0){
           Eigen::Matrix<double, 3, Eigen::Dynamic> intersectionLocal = candidate[i].pose.inverse() * Eigen::Matrix<double, 3, Eigen::Dynamic>(intersection);
           targetRegion.push_back(candidate[i]);
-          targetRegion.back().pose = targetRegion.back().pose * targetEEF->preContactOffset; // offsetだけずらす
+          targetRegion.back().pose = targetRegion.back().pose;
           targetRegion.back().shape = intersectionLocal;
         }
       }
@@ -524,7 +582,7 @@ namespace multicontact_locomotion_planner{
       for(int i=0;i<targetRegion.size();i++){
         std::shared_ptr<ik_constraint2_region_cdd::CddRegionConstraint> constraint = std::make_shared<ik_constraint2_region_cdd::CddRegionConstraint>();
         constraint->A_link() = targetEEF->parentLink;
-        constraint->A_localpos() = targetEEF->localPose;
+        constraint->A_localpos() = targetEEF->localPose * targetEEF->preContactOffset.inverse();
         constraint->B_link() = nullptr;
         constraint->B_localpos() = targetRegion[i].pose;
         constraint->eval_link() = nullptr;
@@ -595,7 +653,7 @@ namespace multicontact_locomotion_planner{
                                                        std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >{subGoalConstraint},
                                                        makePath2);
 
-      if(!solved){
+      if(false/*!solved*/){
         std::cerr << "[" << __FUNCTION__ << "] contact Path is not found" << std::endl;
         frame2Link(currentAngle, variables);
         param.robot->calcForwardKinematics(false);
@@ -719,11 +777,11 @@ namespace multicontact_locomotion_planner{
 
       double maxScore = -1;
       int idx = 0;
-      std::string failedEEF, excessEEF;
+      std::vector<std::string> moveEEF, newEEF, excessContact;
       for(std::unordered_map<std::string, std::shared_ptr<Mode> >::const_iterator it=param.modes.begin(); it!=param.modes.end(); it++){
         if((it->second->score > maxScore || prevMode == it->first) &&
            conditions->children[idx]->isValid()){
-          if(i!=0 || param.modes.find(it->first)->second->isContactSatisfied(currentContacts, true, failedEEF, excessEEF)) { // i = 0の場合、初期姿勢を満たしている必要がある.
+          if(i!=0 || param.modes.find(it->first)->second->isContactSatisfied(currentContacts, true, moveEEF, newEEF, excessContact)) { // i = 0の場合、初期姿勢を満たしている必要がある.
             if(prevMode == it->first) {
               maxScore = it->second->score;
               outputRootPath[i].second = prevMode = it->first;

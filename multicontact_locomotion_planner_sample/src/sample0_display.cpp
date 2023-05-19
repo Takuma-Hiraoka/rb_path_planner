@@ -71,6 +71,14 @@ namespace multicontact_locomotion_planner_sample{
     viewer->objects(environment->smallSurfacesBody);
     viewer->objects(environment->graspsBody);
 
+    abstractRobot->rootLink()->R() = cnoid::AngleAxis(M_PI/2, cnoid::Vector3::UnitY()) * abstractRobot->rootLink()->R();
+            abstractRobot->calcForwardKinematics(false);
+        abstractRobot->calcCenterOfMass();
+        multicontact_locomotion_planner::calcHorizontal(horizontals);
+        horizontalRobot->calcForwardKinematics(false);
+        horizontalRobot->calcCenterOfMass();
+
+
     viewer->drawObjects();
 
 

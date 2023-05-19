@@ -28,15 +28,19 @@ namespace multicontact_locomotion_planner_sample{
     robot = bodyLoader.load(ros::package::getPath("choreonoid") + "/share/model/SR1/SR1.body");
 
     // 梯子ではcrotch-p, knee-pのrangeが必要
-    robot->link("RLEG_HIP_P")->setJointRange(-150.0/180.0*M_PI, robot->link("RLEG_HIP_P")->q_upper());
-    robot->link("LLEG_HIP_P")->setJointRange(-150.0/180.0*M_PI, robot->link("LLEG_HIP_P")->q_upper());
+    robot->link("RLEG_HIP_P")->setJointRange(-150.0/180.0*M_PI, 30.0/180.0*M_PI);
+    robot->link("LLEG_HIP_P")->setJointRange(-150.0/180.0*M_PI, 30.0/180.0*M_PI);
     robot->link("RLEG_KNEE")->setJointRange(robot->link("RLEG_KNEE")->q_lower(), 150.0/180.0*M_PI);
     robot->link("LLEG_KNEE")->setJointRange(robot->link("LLEG_KNEE")->q_lower(), 150.0/180.0*M_PI);
 
-    // 胴の自由度は少ないほうが解けやすい
-    robot->link("WAIST_P")->setJointRange(-30.0/180.0*M_PI, 30.0/180.0*M_PI);
+    // 胴の自由度は少ないほうが変な姿勢にならないので解けやすい. 股関節の逆クルンを防ぐ
+    robot->link("WAIST_P")->setJointRange(-30.0/180.0*M_PI, 60.0/180.0*M_PI);
     robot->link("WAIST_R")->setJointRange(-30.0/180.0*M_PI, 30.0/180.0*M_PI);
     robot->link("CHEST")->setJointRange(-30.0/180.0*M_PI, 30.0/180.0*M_PI);
+    robot->link("RLEG_HIP_R")->setJointRange(-45.0/180.0*M_PI, 30.0/180.0*M_PI);
+    robot->link("LLEG_HIP_R")->setJointRange(-30.0/180.0*M_PI, 45.0/180.0*M_PI);
+    robot->link("RLEG_HIP_Y")->setJointRange(-60.0/180.0*M_PI, 60.0/180.0*M_PI);
+    robot->link("LLEG_HIP_Y")->setJointRange(-60.0/180.0*M_PI, 60.0/180.0*M_PI);
 
     robot->rootLink()->p() = cnoid::Vector3(0,0,0.65);
     robot->rootLink()->v().setZero();
@@ -82,11 +86,11 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateSphere(0.45/*radius*/));
+          shape1->setMesh(meshGenerator.generateSphere(0.55/*radius*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
-          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
-          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,-0.3,0);
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.2,1.2,1.2)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,-0.4,0);
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
           Eigen::MatrixXd intersection;
           convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
@@ -96,7 +100,7 @@ namespace multicontact_locomotion_planner_sample{
         material->setTransparency(0.8);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0.4,0,0.0);
+        posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
         group->addChild(posTransform);
@@ -111,11 +115,11 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateSphere(0.35/*radius*/));
+          shape1->setMesh(meshGenerator.generateSphere(0.5/*radius*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
-          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
-          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,-0.3,0);
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.2,1.2,1.2)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,-0.45,0);
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
           Eigen::MatrixXd intersection;
           convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
@@ -125,7 +129,65 @@ namespace multicontact_locomotion_planner_sample{
         material->setTransparency(0.8);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0.4,0,0.0);
+        posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
+        posTransform->addChild(shape);
+        cnoid::SgGroupPtr group = new cnoid::SgGroup();
+        group->addChild(posTransform);
+        rarmLink->setShape(group);
+      }
+      {
+        cnoid::LinkPtr rarmLink = new cnoid::Link();
+        rarmLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
+        rarmLink->setOffsetTranslation(robot->link("RARM_SHOULDER_P")->p() - robot->rootLink()->p());
+        rarmLink->setName("RARMUPPER");
+        rootLink->appendChild(rarmLink);
+        cnoid::SgShapePtr shape;
+        {
+          cnoid::SgShapePtr shape1 = new cnoid::SgShape();
+          shape1->setMesh(meshGenerator.generateSphere(0.55/*radius*/));
+          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
+          cnoid::SgShapePtr shape2 = new cnoid::SgShape();
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.2,1.2,1.2)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,-0.4,0.25);
+          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
+          Eigen::MatrixXd intersection;
+          convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
+          shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
+        }
+        cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
+        material->setTransparency(0.8);
+        shape->setMaterial(material);
+        cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
+        posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
+        posTransform->addChild(shape);
+        cnoid::SgGroupPtr group = new cnoid::SgGroup();
+        group->addChild(posTransform);
+        rarmLink->setShape(group);
+      }
+      {
+        cnoid::LinkPtr rarmLink = new cnoid::Link();
+        rarmLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
+        rarmLink->setOffsetTranslation(robot->link("RARM_SHOULDER_P")->p() - robot->rootLink()->p());
+        rarmLink->setName("RARMUPPERSMALL");
+        rootLink->appendChild(rarmLink);
+        cnoid::SgShapePtr shape;
+        {
+          cnoid::SgShapePtr shape1 = new cnoid::SgShape();
+          shape1->setMesh(meshGenerator.generateSphere(0.5/*radius*/));
+          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
+          cnoid::SgShapePtr shape2 = new cnoid::SgShape();
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.2,1.2,1.2)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,-0.45,0.3);
+          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
+          Eigen::MatrixXd intersection;
+          convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
+          shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
+        }
+        cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
+        material->setTransparency(0.8);
+        shape->setMaterial(material);
+        cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
+        posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
         group->addChild(posTransform);
@@ -140,11 +202,11 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateSphere(0.45/*radius*/));
+          shape1->setMesh(meshGenerator.generateSphere(0.55/*radius*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
-          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
-          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,0.3,0);
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.2,1.2,1.2)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,0.4,0);
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
           Eigen::MatrixXd intersection;
           convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
@@ -154,7 +216,7 @@ namespace multicontact_locomotion_planner_sample{
         material->setTransparency(0.8);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0.4,0,0.0);
+        posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
         group->addChild(posTransform);
@@ -169,11 +231,11 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateSphere(0.35/*radius*/));
+          shape1->setMesh(meshGenerator.generateSphere(0.5/*radius*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
-          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
-          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,0.3,0);
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.2,1.2,1.2)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,0.45,0);
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
           Eigen::MatrixXd intersection;
           convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
@@ -183,26 +245,26 @@ namespace multicontact_locomotion_planner_sample{
         material->setTransparency(0.8);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0.4,0,0.0);
+        posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
         group->addChild(posTransform);
         larmLink->setShape(group);
       }
       {
-        cnoid::LinkPtr rlegLink = new cnoid::Link();
-        rlegLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
-        rlegLink->setOffsetTranslation(robot->link("RLEG_HIP_P")->p() - robot->rootLink()->p());
-        rlegLink->setName("RLEG");
-        rootLink->appendChild(rlegLink);
+        cnoid::LinkPtr larmLink = new cnoid::Link();
+        larmLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
+        larmLink->setOffsetTranslation(robot->link("LARM_SHOULDER_P")->p() - robot->rootLink()->p());
+        larmLink->setName("LARMUPPER");
+        rootLink->appendChild(larmLink);
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateCylinder(0.5/*radius*/, 0.7/*height*/));
+          shape1->setMesh(meshGenerator.generateSphere(0.55/*radius*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
-          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
-          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,0,-0.3);
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.2,1.2,1.2)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,0.4,0.25);
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
           Eigen::MatrixXd intersection;
           convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
@@ -212,27 +274,26 @@ namespace multicontact_locomotion_planner_sample{
         material->setTransparency(0.8);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0.2,0,-0.35);
-        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
+        posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
         group->addChild(posTransform);
-        rlegLink->setShape(group);
+        larmLink->setShape(group);
       }
       {
-        cnoid::LinkPtr rlegLink = new cnoid::Link();
-        rlegLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
-        rlegLink->setOffsetTranslation(robot->link("RLEG_HIP_P")->p() - robot->rootLink()->p());
-        rlegLink->setName("RLEGSMALL");
-        rootLink->appendChild(rlegLink);
+        cnoid::LinkPtr larmLink = new cnoid::Link();
+        larmLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
+        larmLink->setOffsetTranslation(robot->link("LARM_SHOULDER_P")->p() - robot->rootLink()->p());
+        larmLink->setName("LARMUPPERSMALL");
+        rootLink->appendChild(larmLink);
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateCylinder(0.4/*radius*/, 0.5/*height*/));
+          shape1->setMesh(meshGenerator.generateSphere(0.5/*radius*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
-          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
-          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,0,-0.3);
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.2,1.2,1.2)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,0.45,0.3);
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
           Eigen::MatrixXd intersection;
           convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
@@ -242,72 +303,11 @@ namespace multicontact_locomotion_planner_sample{
         material->setTransparency(0.8);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0.2,0,-0.3);
-        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
+        posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
         group->addChild(posTransform);
-        rlegLink->setShape(group);
-      }
-      {
-        cnoid::LinkPtr llegLink = new cnoid::Link();
-        llegLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
-        llegLink->setOffsetTranslation(robot->link("LLEG_HIP_P")->p() - robot->rootLink()->p());
-        llegLink->setName("LLEG");
-        rootLink->appendChild(llegLink);
-        cnoid::SgShapePtr shape;
-        {
-          cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateCylinder(0.5/*radius*/, 0.7/*height*/));
-          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
-          cnoid::SgShapePtr shape2 = new cnoid::SgShape();
-          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
-          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,0,0.3);
-          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
-          Eigen::MatrixXd intersection;
-          convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
-          shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
-        }
-        cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
-        shape->setMaterial(material);
-        cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0.2,0,-0.35);
-        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
-        posTransform->addChild(shape);
-        cnoid::SgGroupPtr group = new cnoid::SgGroup();
-        group->addChild(posTransform);
-        llegLink->setShape(group);
-      }
-      {
-        cnoid::LinkPtr llegLink = new cnoid::Link();
-        llegLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
-        llegLink->setOffsetTranslation(robot->link("LLEG_HIP_P")->p() - robot->rootLink()->p());
-        llegLink->setName("LLEGSMALL");
-        rootLink->appendChild(llegLink);
-        cnoid::SgShapePtr shape;
-        {
-          cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateCylinder(0.4/*radius*/, 0.5/*height*/));
-          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
-          cnoid::SgShapePtr shape2 = new cnoid::SgShape();
-          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
-          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(0,0,0.3);
-          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
-          Eigen::MatrixXd intersection;
-          convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
-          shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
-        }
-        cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
-        shape->setMaterial(material);
-        cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0.2,0,-0.3);
-        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
-        posTransform->addChild(shape);
-        cnoid::SgGroupPtr group = new cnoid::SgGroup();
-        group->addChild(posTransform);
-        llegLink->setShape(group);
+        larmLink->setShape(group);
       }
       abstractRobot->setRootLink(rootLink);
     }
@@ -405,16 +405,16 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::LinkPtr rlegLink = new cnoid::Link();
         rlegLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
         rlegLink->setOffsetTranslation(robot->link("RLEG_HIP_P")->p() - robot->rootLink()->p());
-        rlegLink->setName("RLEG");
+        rlegLink->setName("RLEGBACK");
         rootLink->appendChild(rlegLink);
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateCylinder(0.5/*radius*/, 0.7/*height*/));
+          shape1->setMesh(meshGenerator.generateCylinder(0.5/*radius*/, 0.6/*height*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
-          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
-          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(-0.5,0,0);
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,0.5)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(-0.4,0,-0.1);
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
           Eigen::MatrixXd intersection;
           convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
@@ -424,7 +424,127 @@ namespace multicontact_locomotion_planner_sample{
         material->setTransparency(0.8);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0.2,0,-0.35);
+        posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
+        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
+        posTransform->addChild(shape);
+        cnoid::SgGroupPtr group = new cnoid::SgGroup();
+        group->addChild(posTransform);
+        rlegLink->setShape(group);
+      }
+      {
+        cnoid::LinkPtr rlegLink = new cnoid::Link();
+        rlegLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
+        rlegLink->setOffsetTranslation(robot->link("RLEG_HIP_P")->p() - robot->rootLink()->p());
+        rlegLink->setName("RLEGBACKSMALL");
+        rootLink->appendChild(rlegLink);
+        cnoid::SgShapePtr shape;
+        {
+          cnoid::SgShapePtr shape1 = new cnoid::SgShape();
+          shape1->setMesh(meshGenerator.generateCylinder(0.45/*radius*/, 0.5/*height*/));
+          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
+          cnoid::SgShapePtr shape2 = new cnoid::SgShape();
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,0.4)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(-0.45,0,-0.15);
+          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
+          Eigen::MatrixXd intersection;
+          convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
+          shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
+        }
+        cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
+        material->setTransparency(0.8);
+        shape->setMaterial(material);
+        cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
+        posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
+        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
+        posTransform->addChild(shape);
+        cnoid::SgGroupPtr group = new cnoid::SgGroup();
+        group->addChild(posTransform);
+        rlegLink->setShape(group);
+      }
+      {
+        cnoid::LinkPtr llegLink = new cnoid::Link();
+        llegLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
+        llegLink->setOffsetTranslation(robot->link("LLEG_HIP_P")->p() - robot->rootLink()->p());
+        llegLink->setName("LLEGBACK");
+        rootLink->appendChild(llegLink);
+        cnoid::SgShapePtr shape;
+        {
+          cnoid::SgShapePtr shape1 = new cnoid::SgShape();
+          shape1->setMesh(meshGenerator.generateCylinder(0.5/*radius*/, 0.6/*height*/));
+          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
+          cnoid::SgShapePtr shape2 = new cnoid::SgShape();
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,0.5)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(-0.4,0,0.1);
+          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
+          Eigen::MatrixXd intersection;
+          convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
+          shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
+        }
+        cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
+        material->setTransparency(0.8);
+        shape->setMaterial(material);
+        cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
+        posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
+        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
+        posTransform->addChild(shape);
+        cnoid::SgGroupPtr group = new cnoid::SgGroup();
+        group->addChild(posTransform);
+        llegLink->setShape(group);
+      }
+      {
+        cnoid::LinkPtr llegLink = new cnoid::Link();
+        llegLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
+        llegLink->setOffsetTranslation(robot->link("LLEG_HIP_P")->p() - robot->rootLink()->p());
+        llegLink->setName("LLEGBACKSMALL");
+        rootLink->appendChild(llegLink);
+        cnoid::SgShapePtr shape;
+        {
+          cnoid::SgShapePtr shape1 = new cnoid::SgShape();
+          shape1->setMesh(meshGenerator.generateCylinder(0.45/*radius*/, 0.5/*height*/));
+          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
+          cnoid::SgShapePtr shape2 = new cnoid::SgShape();
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,0.4)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(-0.45,0,0.15);
+          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
+          Eigen::MatrixXd intersection;
+          convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
+          shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
+        }
+        cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
+        material->setTransparency(0.8);
+        shape->setMaterial(material);
+        cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
+        posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
+        posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
+        posTransform->addChild(shape);
+        cnoid::SgGroupPtr group = new cnoid::SgGroup();
+        group->addChild(posTransform);
+        llegLink->setShape(group);
+      }
+      {
+        cnoid::LinkPtr rlegLink = new cnoid::Link();
+        rlegLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
+        rlegLink->setOffsetTranslation(robot->link("RLEG_HIP_P")->p() - robot->rootLink()->p());
+        rlegLink->setName("RLEG");
+        rootLink->appendChild(rlegLink);
+        cnoid::SgShapePtr shape;
+        {
+          cnoid::SgShapePtr shape1 = new cnoid::SgShape();
+          shape1->setMesh(meshGenerator.generateCylinder(0.5/*radius*/, 0.6/*height*/));
+          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
+          cnoid::SgShapePtr shape2 = new cnoid::SgShape();
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,0.5)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(-0.2,0,-0.1);
+          Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
+          Eigen::MatrixXd intersection;
+          convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
+          shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
+        }
+        cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
+        material->setTransparency(0.8);
+        shape->setMaterial(material);
+        cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
+        posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
         posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
@@ -440,11 +560,11 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateCylinder(0.4/*radius*/, 0.5/*height*/));
+          shape1->setMesh(meshGenerator.generateCylinder(0.45/*radius*/, 0.5/*height*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
-          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
-          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(-0.5,0,0);
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,0.4)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(-0.25,0,-0.15);
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
           Eigen::MatrixXd intersection;
           convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
@@ -454,7 +574,7 @@ namespace multicontact_locomotion_planner_sample{
         material->setTransparency(0.8);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0.2,0,-0.3);
+        posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
         posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
@@ -470,11 +590,11 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateCylinder(0.5/*radius*/, 0.7/*height*/));
+          shape1->setMesh(meshGenerator.generateCylinder(0.5/*radius*/, 0.6/*height*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
-          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
-          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(-0.5,0,0);
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,0.5)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(-0.2,0,0.1);
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
           Eigen::MatrixXd intersection;
           convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
@@ -484,7 +604,7 @@ namespace multicontact_locomotion_planner_sample{
         material->setTransparency(0.8);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0.2,0,-0.35);
+        posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
         posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
@@ -500,11 +620,11 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape;
         {
           cnoid::SgShapePtr shape1 = new cnoid::SgShape();
-          shape1->setMesh(meshGenerator.generateCylinder(0.4/*radius*/, 0.5/*height*/));
+          shape1->setMesh(meshGenerator.generateCylinder(0.45/*radius*/, 0.5/*height*/));
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices1 = choreonoid_qhull::meshToEigen(shape1);
           cnoid::SgShapePtr shape2 = new cnoid::SgShape();
-          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,1.0)));
-          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(-0.5,0,0);
+          shape2->setMesh(meshGenerator.generateBox(cnoid::Vector3(1.0,1.0,0.4)));
+          cnoid::Position trans = cnoid::Position::Identity(); trans.translation() = cnoid::Vector3(-0.25,0,0.15);
           Eigen::Matrix<double, 3, Eigen::Dynamic> vertices2 = trans * choreonoid_qhull::meshToEigen(shape2);
           Eigen::MatrixXd intersection;
           convex_polyhedron_intersection::intersection(vertices1, vertices2, intersection);
@@ -514,7 +634,7 @@ namespace multicontact_locomotion_planner_sample{
         material->setTransparency(0.8);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->translation() = cnoid::Vector3(0.2,0,-0.3);
+        posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
         posTransform->rotation() = cnoid::AngleAxis(-M_PI/2, cnoid::Vector3::UnitX()).toRotationMatrix();
         posTransform->addChild(shape);
         cnoid::SgGroupPtr group = new cnoid::SgGroup();
@@ -954,7 +1074,7 @@ namespace multicontact_locomotion_planner_sample{
         mode->eefs.push_back("rtoe");
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = horizontalRobot->link("RLEG");
+          constraint->A_link() = horizontalRobot->link("RLEGBACK");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -964,7 +1084,7 @@ namespace multicontact_locomotion_planner_sample{
         }
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = horizontalRobot->link("RLEGSMALL");
+          constraint->A_link() = horizontalRobot->link("RLEGBACKSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -977,7 +1097,7 @@ namespace multicontact_locomotion_planner_sample{
         mode->eefs.push_back("rarm");
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("RARM");
+          constraint->A_link() = abstractRobot->link("RARMUPPER");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -987,7 +1107,7 @@ namespace multicontact_locomotion_planner_sample{
         }
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("RARMSMALL");
+          constraint->A_link() = abstractRobot->link("RARMUPPERSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1000,7 +1120,7 @@ namespace multicontact_locomotion_planner_sample{
         mode->eefs.push_back("ltoe");
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = horizontalRobot->link("LLEG");
+          constraint->A_link() = horizontalRobot->link("LLEGBACK");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1010,7 +1130,7 @@ namespace multicontact_locomotion_planner_sample{
         }
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = horizontalRobot->link("LLEGSMALL");
+          constraint->A_link() = horizontalRobot->link("LLEGBACKSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1023,7 +1143,7 @@ namespace multicontact_locomotion_planner_sample{
         mode->eefs.push_back("larm");
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("LARM");
+          constraint->A_link() = abstractRobot->link("LARMUPPER");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1033,7 +1153,7 @@ namespace multicontact_locomotion_planner_sample{
         }
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("LARMSMALL");
+          constraint->A_link() = abstractRobot->link("LARMUPPERSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1078,7 +1198,7 @@ namespace multicontact_locomotion_planner_sample{
         mode->eefs.push_back("rleg");
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = horizontalRobot->link("RLEG");
+          constraint->A_link() = horizontalRobot->link("RLEGBACK");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1088,7 +1208,7 @@ namespace multicontact_locomotion_planner_sample{
         }
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = horizontalRobot->link("RLEGSMALL");
+          constraint->A_link() = horizontalRobot->link("RLEGBACKSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1101,7 +1221,7 @@ namespace multicontact_locomotion_planner_sample{
         mode->eefs.push_back("rarm");
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("RARM");
+          constraint->A_link() = abstractRobot->link("RARMUPPER");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1111,7 +1231,7 @@ namespace multicontact_locomotion_planner_sample{
         }
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("RARMSMALL");
+          constraint->A_link() = abstractRobot->link("RARMUPPERSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1124,7 +1244,7 @@ namespace multicontact_locomotion_planner_sample{
         mode->eefs.push_back("lleg");
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = horizontalRobot->link("LLEG");
+          constraint->A_link() = horizontalRobot->link("LLEGBACK");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1134,7 +1254,7 @@ namespace multicontact_locomotion_planner_sample{
         }
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = horizontalRobot->link("LLEGSMALL");
+          constraint->A_link() = horizontalRobot->link("LLEGBACKSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1147,7 +1267,7 @@ namespace multicontact_locomotion_planner_sample{
         mode->eefs.push_back("larm");
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("LARM");
+          constraint->A_link() = abstractRobot->link("LARMUPPER");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1157,7 +1277,7 @@ namespace multicontact_locomotion_planner_sample{
         }
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("LARMSMALL");
+          constraint->A_link() = abstractRobot->link("LARMUPPERSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1203,7 +1323,7 @@ namespace multicontact_locomotion_planner_sample{
         mode->eefs.push_back("rtoe");
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("RLEG");
+          constraint->A_link() = horizontalRobot->link("RLEG");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1213,7 +1333,7 @@ namespace multicontact_locomotion_planner_sample{
         }
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("RLEGSMALL");
+          constraint->A_link() = horizontalRobot->link("RLEGSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1249,7 +1369,7 @@ namespace multicontact_locomotion_planner_sample{
         mode->eefs.push_back("ltoe");
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("LLEG");
+          constraint->A_link() = horizontalRobot->link("LLEG");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1259,7 +1379,7 @@ namespace multicontact_locomotion_planner_sample{
         }
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("LLEGSMALL");
+          constraint->A_link() = horizontalRobot->link("LLEGSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1327,7 +1447,7 @@ namespace multicontact_locomotion_planner_sample{
         mode->eefs.push_back("rleg");
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("RLEG");
+          constraint->A_link() = horizontalRobot->link("RLEG");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1337,7 +1457,7 @@ namespace multicontact_locomotion_planner_sample{
         }
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("RLEGSMALL");
+          constraint->A_link() = horizontalRobot->link("RLEGSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1373,7 +1493,7 @@ namespace multicontact_locomotion_planner_sample{
         mode->eefs.push_back("lleg");
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("LLEG");
+          constraint->A_link() = horizontalRobot->link("LLEG");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1383,7 +1503,7 @@ namespace multicontact_locomotion_planner_sample{
         }
         {
           std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
-          constraint->A_link() = abstractRobot->link("LLEGSMALL");
+          constraint->A_link() = horizontalRobot->link("LLEGSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
           constraint->tolerance() = 0.01;
           constraint->useSingleMesh() = false; // support polygonを個別にチェック
@@ -1457,8 +1577,8 @@ namespace multicontact_locomotion_planner_sample{
       // task: self collision
       std::vector<std::string> rarm{"RARM_SHOULDER_R", "RARM_ELBOW", "RARM_WRIST_R"};
       std::vector<std::string> larm{"LARM_SHOULDER_R", "LARM_ELBOW", "LARM_WRIST_R"};
-      std::vector<std::string> rleg{"RLEG_HIP_Y", "RLEG_KNEE"};
-      std::vector<std::string> lleg{"LLEG_HIP_Y", "LLEG_KNEE"};
+      std::vector<std::string> rleg{"RLEG_HIP_Y", "RLEG_KNEE", "RLEG_ANKLE_R"};
+      std::vector<std::string> lleg{"LLEG_HIP_Y", "LLEG_KNEE", "LLEG_ANKLE_R"};
       std::vector<std::string> torso{"WAIST", "WAIST_R", "CHEST"};
 
       std::vector<std::vector<std::string> > pairs;

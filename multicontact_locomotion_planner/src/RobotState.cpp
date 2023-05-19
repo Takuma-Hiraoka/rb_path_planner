@@ -51,16 +51,18 @@ namespace multicontact_locomotion_planner{
 
   bool Mode::isContactSatisfied(const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
                                 bool isLarge,
-                                std::string& failedEEF, std::string& excessContact){
-    failedEEF = "";
-    excessContact = "";
-    int numFailed = 0;
-    for(int i=0;i<eefs.size() && numFailed<2;i++){
+                                std::vector<std::string>& moveEEF,
+                                std::vector<std::string>& newEEF,
+                                std::vector<std::string>& excessContact){
+    moveEEF.clear();
+    newEEF.clear();
+    excessContact.clear();
+
+    for(int i=0;i<eefs.size();i++){
       std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = isLarge ? this->reachabilityConstraintsLarge[i] : this->reachabilityConstraintsSmall[i];
 
       if(currentContacts.find(eefs[i]) == currentContacts.end()){
-        numFailed++;
-        failedEEF = eefs[i];
+        newEEF.push_back(eefs[i]);
       }else{
 
         {
@@ -77,21 +79,18 @@ namespace multicontact_locomotion_planner{
         }
         constraint->updateBounds();
         if(constraint->isSatisfied()){
-          numFailed++;
-          failedEEF = eefs[i];
+          moveEEF.push_back(eefs[i]);
         }
       }
     }
 
-    int numExcess = 0;
-    for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it=currentContacts.begin();it!=currentContacts.end() && numExcess<2;it++){
+    for(std::unordered_map<std::string, std::shared_ptr<Contact> >::const_iterator it=currentContacts.begin();it!=currentContacts.end();it++){
       if(std::find(eefs.begin(),eefs.end(),it->first) == eefs.end()){
-        numExcess++;
-        excessContact = it->first;
+        excessContact.push_back(it->first);
       }
     }
 
-    if(numFailed < 2 && numExcess < 2){
+    if((moveEEF.size() + newEEF.size() < 2) && (moveEEF.size() + excessContact.size() < 2)){
       return true;
     }else{
       return false;

@@ -81,12 +81,16 @@ namespace multicontact_locomotion_planner_sample{
     param.robotIKInfo->gikParam.viewer = viewer;
     param.rbrrtParam.viewer = viewer;
     param.rbrrtParam.maxTranslation = 2.0;
+    param.rbrrtParam.timeout = 60.0;
+    param.robotIKInfo->gikParam.threads = 10;
+    param.robotIKInfo->gikParam.timeout = 20;
 
 
     std::vector<std::pair<std::vector<double>, std::string> > targetRootPath;
     cnoid::Position goal = abstractRobot->rootLink()->T();
-    goal.translation() += cnoid::Vector3(1.0,0.0,1.5);
-    goal.linear() = cnoid::AngleAxis(M_PI/2, cnoid::Vector3::UnitY()).toRotationMatrix();
+    // goal.translation() += cnoid::Vector3(1.0,0.0,1.5);
+    // goal.linear() = cnoid::AngleAxis(M_PI/2, cnoid::Vector3::UnitY()).toRotationMatrix();
+    goal.translation() += cnoid::Vector3(1.5,0.0,1.8);
     multicontact_locomotion_planner::solveRBRRT(environment,
                                                 currentContacts,
                                                 goal,
@@ -94,11 +98,30 @@ namespace multicontact_locomotion_planner_sample{
                                                 targetRootPath
                                                 );
 
+    for(int i=0;i<targetRootPath.size();i++){
+      multicontact_locomotion_planner::frame2Link(targetRootPath[i].first,std::vector<cnoid::LinkPtr>{abstractRobot->rootLink()});
+      abstractRobot->calcForwardKinematics(false);
+      abstractRobot->calcCenterOfMass();
+      multicontact_locomotion_planner::calcHorizontal(horizontals);
+      horizontalRobot->calcForwardKinematics(false);
+      horizontalRobot->calcCenterOfMass();
+
+      viewer->drawObjects();
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    multicontact_locomotion_planner::calcAssoc(assocs);
+    abstractRobot->calcForwardKinematics(false);
+    abstractRobot->calcCenterOfMass();
+    multicontact_locomotion_planner::calcHorizontal(horizontals);
+    horizontalRobot->calcForwardKinematics(false);
+    horizontalRobot->calcCenterOfMass();
+
 
 
     std::vector<std::vector<multicontact_locomotion_planner::RobotState> > path;
 
-    for(int i=0;i<50;i++){
+    for(int i=0;i<70;i++){
       std::vector<multicontact_locomotion_planner::RobotState> tmp_path;
       std::string swingEEF;
       multicontact_locomotion_planner::solveMLP(robot,
