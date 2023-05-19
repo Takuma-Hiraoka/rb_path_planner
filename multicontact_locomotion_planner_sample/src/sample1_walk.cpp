@@ -47,7 +47,7 @@ namespace multicontact_locomotion_planner_sample{
       std::vector<double> angle;
       multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, angle);
       targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "biped"));
-      for(int i=0;i<7;i++){
+      for(int i=0;i<20;i++){
         robot->rootLink()->translation() += cnoid::Vector3(-0.05,0.0,0.0);
         multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, angle);
         targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "biped"));
@@ -96,7 +96,7 @@ namespace multicontact_locomotion_planner_sample{
 
     std::vector<std::vector<multicontact_locomotion_planner::RobotState> > path;
 
-    for(int i=0;i<10;i++){
+    for(int i=0;i<20;i++){
       std::vector<multicontact_locomotion_planner::RobotState> tmp_path;
       std::string swingEEF;
       multicontact_locomotion_planner::solveMLP(robot,

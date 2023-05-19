@@ -55,11 +55,15 @@ namespace multicontact_locomotion_planner_sample{
         targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "biped"));
       }
 
+      targetRootPath.push_back(std::pair<std::vector<double>, std::string>(targetRootPath.back().first, "quadruped_large"));
+
       for(int i=0;i<30;i++){
         robot->rootLink()->translation() += cnoid::Vector3(-0.05,0.0,0.0);
         multicontact_locomotion_planner::link2Frame(std::vector<cnoid::LinkPtr>{robot->rootLink()}, angle);
         targetRootPath.push_back(std::pair<std::vector<double>, std::string>(angle, "quadruped"));
       }
+
+      targetRootPath.push_back(std::pair<std::vector<double>, std::string>(targetRootPath.back().first, "quadruped_large"));
 
       for(int i=0;i<8;i++){
         robot->rootLink()->translation() += cnoid::Vector3(0.0,0.0,0.02);
@@ -105,8 +109,8 @@ namespace multicontact_locomotion_planner_sample{
     param.endEffectors = endEffectors;
     param.modes = modes;
     param.robotIKInfo = robotIKInfo;
-    //param.debugLevel = 3;
-    param.debugLevel = 2;
+    param.debugLevel = 3;
+    //param.debugLevel = 2;
 
     //param.robotIKInfo->pikParam.debugLevel = 2;
     param.robotIKInfo->gikParam.viewer = viewer;
