@@ -45,16 +45,16 @@ namespace multicontact_locomotion_planner_sample{
       environment->obstacles = std::make_shared<distance_field::PropagationDistanceField>(5,//size_x
                                                                                           5,//size_y
                                                                                           5,//size_z
-                                                                                          0.04,//resolution
+                                                                                          0.02,//resolution
                                                                                           -2.5,//origin_x
                                                                                           -2.5,//origin_y
                                                                                           -2.5,//origin_z
                                                                                           0.5, // max_distance
-                                                                                          false// propagate_negative_distances
+                                                                                          true// propagate_negative_distances
                                                                                           );
       EigenSTL::vector_Vector3d vertices;
       for(int i=0;i<obstacle->numLinks();i++){
-        std::vector<Eigen::Vector3f> vertices_ = ik_constraint2_distance_field::getSurfaceVertices(obstacle->link(i), 0.04);
+        std::vector<Eigen::Vector3f> vertices_ = ik_constraint2_distance_field::getSurfaceVertices(obstacle->link(i), 0.01);
         for(int j=0;j<vertices_.size();j++){
           vertices.push_back(obstacle->link(i)->T() * vertices_[j].cast<double>());
         }
