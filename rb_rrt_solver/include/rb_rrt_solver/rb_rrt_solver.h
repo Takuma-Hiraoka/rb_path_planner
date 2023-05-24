@@ -14,7 +14,7 @@ namespace rb_rrt_solver{
     std::shared_ptr<choreonoid_viewer::Viewer> viewer = nullptr;
     unsigned int drawLoop = 100; // スレッド0が、drawLoopに一回描画する
 
-    double maxTranslation = 3.0;
+    double maxTranslation = 3.0; // free jointの並進上下限
     double stateValidityCheckingResolution = 0.01; // statespaceの上下限の、この値倍の区間は、validity check不要
     double range = 0.5;
     double timeout = 30.0;
