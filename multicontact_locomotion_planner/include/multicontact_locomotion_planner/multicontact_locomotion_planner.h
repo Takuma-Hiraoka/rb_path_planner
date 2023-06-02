@@ -96,7 +96,7 @@ namespace multicontact_locomotion_planner{
       rbrrtParam.timeout = 30.0;
       rbrrtParam.maxTranslation = 3.0;
       //rbrrtParam.pikParam.maxIteration = 100; // env collisionは振動しやすいので15くらいがいい?. 確実に制約を満たすために大きい方がいい?
-      rbrrtParam.threads = 1;
+      rbrrtParam.threads = 10;
     };
   };
 

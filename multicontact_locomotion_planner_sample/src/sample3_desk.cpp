@@ -14,7 +14,7 @@
 #include "world_common.h"
 
 namespace multicontact_locomotion_planner_sample{
-  void sample3_desk(){ getchar();
+  void sample3_desk(){
     cnoid::BodyPtr obstacle;
     std::shared_ptr<multicontact_locomotion_planner::Environment> environment;
     generateStepWorld(obstacle, environment);
@@ -81,6 +81,7 @@ namespace multicontact_locomotion_planner_sample{
     param.robotIKInfo->gikParam.viewer = viewer;
     param.rbrrtParam.viewer = viewer;
     param.rbrrtParam.drawLoop = 10; // 1drawに10msくらいかかることに注意
+    param.rbrrtParam.threads = 10;
     //param.rbrrtParam.pikParam.debugLevel = 2;
     param.robotIKInfo->gikParam.threads = 10;
 

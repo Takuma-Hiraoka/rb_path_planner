@@ -1805,7 +1805,7 @@ namespace multicontact_locomotion_planner_sample{
         std::shared_ptr<ik_constraint2_distance_field::DistanceFieldCollisionConstraint> constraint = std::make_shared<ik_constraint2_distance_field::DistanceFieldCollisionConstraint>();
         constraint->A_link() = robot->link(i);
         constraint->field() = field;
-        constraint->tolerance() = 0.03;
+        constraint->tolerance() = 0.05; // fieldのresolutionが分解能. 一回のiterationで動く最大量よりも大きいと安全. 0.03だと小さくてためにめりこむ?
         constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
         robotIKInfo->envConstraints.push_back(constraint);
       }
