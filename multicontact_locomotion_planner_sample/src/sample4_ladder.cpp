@@ -39,6 +39,9 @@ namespace multicontact_locomotion_planner_sample{
 
     cnoid::MeshGenerator meshGenerator;
 
+    // robot->rootLink()->R() = cnoid::AngleAxis(1.57, cnoid::Vector3::UnitZ()) * robot->rootLink()->R();
+    // abstractRobot->rootLink()->T() = robot->rootLink()->T();
+    // horizontalRobot->rootLink()->T() = robot->rootLink()->T();
 
     std::unordered_map<std::string, std::shared_ptr<multicontact_locomotion_planner::Contact> > currentContacts;
     currentContacts["rleg"] = endEffectors["rleg"]->generateContact();
@@ -92,6 +95,7 @@ namespace multicontact_locomotion_planner_sample{
     // goal.translation() += cnoid::Vector3(1.0,0.0,1.5);
     // goal.linear() = cnoid::AngleAxis(M_PI/2, cnoid::Vector3::UnitY()).toRotationMatrix();
     goal.translation() += cnoid::Vector3(1.5,0.0,1.8);
+
     multicontact_locomotion_planner::solveRBRRT(environment,
                                                 currentContacts,
                                                 goal,

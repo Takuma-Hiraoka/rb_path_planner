@@ -665,7 +665,7 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->ikConstraint->B_link() = nullptr;
       endEffector->ikConstraint->B_localpos() = endEffector->parentLink->T() * endEffector->localPose;
       endEffector->preContactOffset.setIdentity();
-      endEffector->preContactOffset.translation()[2] = 0.05;
+      endEffector->preContactOffset.translation()[2] = 0.08;
       endEffector->ignoreLinks.clear();
       endEffector->ignoreLinks.insert(robot->link("RLEG_ANKLE_R"));
       endEffector->ignoreLinks.insert(robot->link("RLEG_ANKLE_P"));
@@ -709,7 +709,7 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->ikConstraint->B_link() = nullptr;
       endEffector->ikConstraint->B_localpos() = endEffector->parentLink->T() * endEffector->localPose;
       endEffector->preContactOffset.setIdentity();
-      endEffector->preContactOffset.translation()[2] = 0.05;
+      endEffector->preContactOffset.translation()[2] = 0.08;
       endEffector->ignoreLinks.clear();
       endEffector->ignoreLinks.insert(robot->link("LLEG_ANKLE_R"));
       endEffector->ignoreLinks.insert(robot->link("LLEG_ANKLE_P"));
@@ -753,7 +753,7 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->ikConstraint->B_link() = nullptr;
       endEffector->ikConstraint->B_localpos() = endEffector->parentLink->T() * endEffector->localPose;
       endEffector->preContactOffset.setIdentity();
-      endEffector->preContactOffset.translation()[2] = 0.05;
+      endEffector->preContactOffset.translation()[2] = 0.08;
       endEffector->ignoreLinks.clear();
       endEffector->ignoreLinks.insert(robot->link("RLEG_ANKLE_R"));
       endEffector->ignoreLinks.insert(robot->link("RLEG_ANKLE_P"));
@@ -797,7 +797,7 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->ikConstraint->B_link() = nullptr;
       endEffector->ikConstraint->B_localpos() = endEffector->parentLink->T() * endEffector->localPose;
       endEffector->preContactOffset.setIdentity();
-      endEffector->preContactOffset.translation()[2] = 0.05;
+      endEffector->preContactOffset.translation()[2] = 0.08;
       endEffector->ignoreLinks.clear();
       endEffector->ignoreLinks.insert(robot->link("LLEG_ANKLE_R"));
       endEffector->ignoreLinks.insert(robot->link("LLEG_ANKLE_P"));
@@ -841,7 +841,7 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->ikConstraint->B_link() = nullptr;
       endEffector->ikConstraint->B_localpos() = endEffector->parentLink->T() * endEffector->localPose;
       endEffector->preContactOffset.setIdentity();
-      endEffector->preContactOffset.translation()[2] = 0.05;
+      endEffector->preContactOffset.translation()[2] = 0.08;
       endEffector->ignoreLinks.clear();
       endEffector->ignoreLinks.insert(robot->link("RARM_WRIST_R"));
       endEffector->ignoreLinks.insert(robot->link("RARM_WRIST_P"));
@@ -887,7 +887,7 @@ namespace multicontact_locomotion_planner_sample{
       endEffector->ikConstraint->B_link() = nullptr;
       endEffector->ikConstraint->B_localpos() = endEffector->parentLink->T() * endEffector->localPose;
       endEffector->preContactOffset.setIdentity();
-      endEffector->preContactOffset.translation()[2] = 0.05;
+      endEffector->preContactOffset.translation()[2] = 0.08;
       endEffector->ignoreLinks.clear();
       endEffector->ignoreLinks.insert(robot->link("LARM_WRIST_R"));
       endEffector->ignoreLinks.insert(robot->link("LARM_WRIST_P"));
@@ -1805,7 +1805,7 @@ namespace multicontact_locomotion_planner_sample{
         std::shared_ptr<ik_constraint2_distance_field::DistanceFieldCollisionConstraint> constraint = std::make_shared<ik_constraint2_distance_field::DistanceFieldCollisionConstraint>();
         constraint->A_link() = robot->link(i);
         constraint->field() = field;
-        constraint->tolerance() = 0.05; // fieldのresolutionが分解能. 一回のiterationで動く最大量よりも大きいと安全. 0.03だと小さくてためにめりこむ?
+        constraint->tolerance() = 0.05; // fieldのresolutionが分解能. 一回のiterationで動く最大量よりも大きいと安全. 0.03だと小さくてためにめりこむ?. これにあわせてprecontactoffsetも大きくせよ
         constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
         robotIKInfo->envConstraints.push_back(constraint);
       }
