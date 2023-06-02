@@ -889,7 +889,7 @@ namespace multicontact_locomotion_planner{
       cnoid::Position org = param.abstractRobot->rootLink()->T();
       param.abstractRobot->rootLink()->T() = goal;
       param.horizontalRobot->rootLink()->T() = orientCoordToAxis(param.abstractRobot->rootLink()->T(), cnoid::Vector3::UnitZ(), cnoid::Vector3::UnitZ());
-      rb_rrt_solver::link2Frame(variables, goals);
+      link2Frame(variables, goals);
       param.abstractRobot->rootLink()->T() = org;
       param.horizontalRobot->rootLink()->T() = orientCoordToAxis(param.abstractRobot->rootLink()->T(), cnoid::Vector3::UnitZ(), cnoid::Vector3::UnitZ());
     }

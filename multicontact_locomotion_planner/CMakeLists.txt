@@ -18,7 +18,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_core
   choreonoid_qhull
   global_inverse_kinematics_solver
-  rb_rrt_solver
   scfr_solver
   )
 
@@ -28,7 +27,7 @@ find_package(ompl REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES multicontact_locomotion_planner
-  CATKIN_DEPENDS ik_constraint2 ik_constraint2_vclip ik_constraint2_distance_field prioritized_inverse_kinematics_solver2 global_inverse_kinematics_solver rb_rrt_solver
+  CATKIN_DEPENDS ik_constraint2 ik_constraint2_vclip ik_constraint2_distance_field prioritized_inverse_kinematics_solver2 global_inverse_kinematics_solver
   DEPENDS OMPL
 )
 

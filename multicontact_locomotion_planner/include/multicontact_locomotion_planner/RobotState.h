@@ -12,7 +12,6 @@
 #include <ik_constraint2/ik_constraint2.h>
 #include <ik_constraint2_vclip/ik_constraint2_vclip.h>
 #include <ik_constraint2_bullet/ik_constraint2_bullet.h>
-#include <rb_rrt_solver/rb_rrt_solver.h>
 
 namespace multicontact_locomotion_planner{
 
