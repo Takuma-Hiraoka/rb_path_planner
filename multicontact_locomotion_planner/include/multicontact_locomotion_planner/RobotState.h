@@ -125,7 +125,8 @@ namespace multicontact_locomotion_planner{
                             bool isLarge,
                             std::vector<std::string>& moveEEF,
                             std::vector<std::string>& newEEF,
-                            std::vector<std::string>& excessContact);
+                            std::vector<std::string>& excessContact,
+                            double eps = 0.03);
   };
 };
 

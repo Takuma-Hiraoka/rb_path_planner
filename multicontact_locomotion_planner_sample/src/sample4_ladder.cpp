@@ -80,8 +80,9 @@ namespace multicontact_locomotion_planner_sample{
     //param.robotIKInfo->pikParam.debugLevel = 2;
     param.robotIKInfo->gikParam.viewer = viewer;
     param.rbrrtParam.viewer = viewer;
+    param.rbrrtParam.drawLoop = 10; // 1drawに10msくらいかかることに注意
     param.rbrrtParam.maxTranslation = 2.0;
-    param.rbrrtParam.timeout = 60.0;
+    param.rbrrtParam.pikParam.debugLevel = 1;
     param.robotIKInfo->gikParam.threads = 10;
     param.robotIKInfo->gikParam.timeout = 20;
 

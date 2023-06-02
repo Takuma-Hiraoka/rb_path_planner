@@ -815,6 +815,7 @@ namespace multicontact_locomotion_planner{
     }
 
     std::shared_ptr<ik_constraint2::ORConstraint> conditions = std::make_shared<ik_constraint2::ORConstraint>();
+    //conditions->debugLevel() = 2;
     for(std::unordered_map<std::string, std::shared_ptr<Mode> >::const_iterator it=param.modes.begin(); it!=param.modes.end(); it++){
       conditions->children().push_back(it->second->generateCondition(param.endEffectors, environment));
     }
@@ -843,16 +844,30 @@ namespace multicontact_locomotion_planner{
       return false;
     }
 
+    for(int i=0;i<path->size();i++){
+      frame2Link(path->at(i), variables);
+      param.abstractRobot->calcForwardKinematics(false);
+      //multicontact_locomotion_planner::calcHorizontal(param.horizontals);
+      param.horizontalRobot->calcForwardKinematics(false);
+
+      conditions->updateBounds();
+
+      getchar(); param.rbrrtParam.viewer->drawObjects();
+    }
+
     outputRootPath.resize(path->size());
     std::string prevMode = "";
     for(int i=0;i<path->size();i++){
       outputRootPath[i].first = path->at(i);
       frame2Link(path->at(i), variables);
       param.abstractRobot->calcForwardKinematics(false);
-      multicontact_locomotion_planner::calcHorizontal(param.horizontals);
+      //multicontact_locomotion_planner::calcHorizontal(param.horizontals);
       param.horizontalRobot->calcForwardKinematics(false);
 
       conditions->updateBounds();
+
+      std::cerr << (conditions->isSatisfied() == true) << std::endl;
+      getchar(); param.rbrrtParam.viewer->drawObjects();
 
       double maxScore = -1;
       int idx = 0;

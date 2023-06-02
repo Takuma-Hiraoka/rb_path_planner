@@ -26,6 +26,7 @@ namespace multicontact_locomotion_planner{
 
   std::shared_ptr<ik_constraint2::IKConstraint> Mode::generateCondition(const std::unordered_map<std::string, std::shared_ptr<EndEffector> >& endEffectors, const std::shared_ptr<Environment>& environment){
     std::shared_ptr<ik_constraint2::ANDConstraint> conditions = std::make_shared<ik_constraint2::ANDConstraint>();
+    //conditions->debugLevel() = 2;
     for(int i=0;i<this->rootConstraints.size();i++){
       conditions->children().push_back(this->rootConstraints[i]);
     }
@@ -54,7 +55,8 @@ namespace multicontact_locomotion_planner{
                                 bool isLarge,
                                 std::vector<std::string>& moveEEF,
                                 std::vector<std::string>& newEEF,
-                                std::vector<std::string>& excessContact){
+                                std::vector<std::string>& excessContact,
+                                double eps){
     moveEEF.clear();
     newEEF.clear();
     excessContact.clear();
@@ -82,10 +84,13 @@ namespace multicontact_locomotion_planner{
                                                       constraint->B_FACE_dl(),
                                                       constraint->B_FACE_du());
         }
+        double org = constraint->precision();
+        constraint->precision() += eps;
         constraint->updateBounds();
         if(!constraint->isSatisfied()){
           moveEEF.push_back(eefs[i]);
         }
+        constraint->precision() = org;
       }
     }
 
