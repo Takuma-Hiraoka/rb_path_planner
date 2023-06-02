@@ -84,11 +84,19 @@ namespace multicontact_locomotion_planner{
     std::unordered_map<std::string, std::shared_ptr<Mode> > modes;
     std::shared_ptr<RobotIKInfo> robotIKInfo = std::make_shared<RobotIKInfo>();
 
-    rb_rrt_solver::RBRRTParam rbrrtParam;
+    global_inverse_kinematics_solver::GIKParam rbrrtParam;
 
     double subGoalDistanceFar = 0.6;
     double subGoalDistanceNear= 0.15;
     double subGoalRotScale = 0.1; // 回転の重みを小さくしないと、subGoalDistanceNear内の点が見つからなかったり、translation的に不自然なsubGoalになったりする
+
+    MLPParam(){
+      rbrrtParam.range = 2.0; // rootlinkのtranslationのuniform samplingの幅が大きすぎて、rangeで縮小すると、rootLinkのrotationの変位が小さくなってしまうことから、rangeは大きい方がいい
+      rbrrtParam.delta = 0.2; // 大きければ大きいほど速いが、干渉計算の正確さが犠牲になる
+      rbrrtParam.timeout = 30.0;
+      rbrrtParam.maxTranslation = 3.0;
+      rbrrtParam.pikParam.maxIteration = 15; // collision invertは振動しやすい
+    };
   };
 
   bool solveMLP(const cnoid::BodyPtr currentRobot,

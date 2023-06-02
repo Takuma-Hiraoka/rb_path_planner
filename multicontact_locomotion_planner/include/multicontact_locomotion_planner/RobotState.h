@@ -11,6 +11,7 @@
 #include <cnoid/Body>
 #include <ik_constraint2/ik_constraint2.h>
 #include <ik_constraint2_vclip/ik_constraint2_vclip.h>
+#include <ik_constraint2_bullet/ik_constraint2_bullet.h>
 #include <rb_rrt_solver/rb_rrt_solver.h>
 
 namespace multicontact_locomotion_planner{
@@ -112,13 +113,13 @@ namespace multicontact_locomotion_planner{
     double score = 1.0; // 大きい方を好む
 
     std::vector<std::string> eefs;
-    std::vector<std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> > reachabilityConstraintsSmall; // サイズと順番はeefsと同じ. A_linkがreachability. B_linkはplannerがセットする.
-    std::vector<std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> > reachabilityConstraintsLarge; // サイズと順番はeefsと同じ. A_linkがreachability. B_linkはplannerがセットする.
+    std::vector<std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> > reachabilityConstraintsSmall; // サイズと順番はeefsと同じ. A_linkがreachability. B_linkはplannerがセットする.
+    std::vector<std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> > reachabilityConstraintsLarge; // サイズと順番はeefsと同じ. A_linkがreachability. B_linkはplannerがセットする.
 
     std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > rootConstraints; // root obstacle collision.
 
   public:
-    std::shared_ptr<rb_rrt_solver::Condition> generateCondition(const std::unordered_map<std::string, std::shared_ptr<EndEffector> >& endEffectors, const std::shared_ptr<Environment>& environment);
+    std::shared_ptr<ik_constraint2::IKConstraint> generateCondition(const std::unordered_map<std::string, std::shared_ptr<EndEffector> >& endEffectors, const std::shared_ptr<Environment>& environment);
 
     bool isContactSatisfied(const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
                             bool isLarge,

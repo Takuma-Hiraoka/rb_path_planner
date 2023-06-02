@@ -80,6 +80,7 @@ namespace multicontact_locomotion_planner_sample{
     //param.robotIKInfo->pikParam.debugLevel = 2;
     param.robotIKInfo->gikParam.viewer = viewer;
     param.rbrrtParam.viewer = viewer;
+    //param.rbrrtParam.pikParam.debugLevel = 2;
     param.robotIKInfo->gikParam.threads = 10;
 
 
@@ -92,6 +93,26 @@ namespace multicontact_locomotion_planner_sample{
                                                 param,
                                                 targetRootPath
                                                 );
+
+    for(int i=0;i<targetRootPath.size();i++){
+      multicontact_locomotion_planner::frame2Link(targetRootPath[i].first,std::vector<cnoid::LinkPtr>{abstractRobot->rootLink()});
+      abstractRobot->calcForwardKinematics(false);
+      abstractRobot->calcCenterOfMass();
+      multicontact_locomotion_planner::calcHorizontal(horizontals);
+      horizontalRobot->calcForwardKinematics(false);
+      horizontalRobot->calcCenterOfMass();
+
+      viewer->drawObjects();
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    multicontact_locomotion_planner::calcAssoc(assocs);
+    abstractRobot->calcForwardKinematics(false);
+    abstractRobot->calcCenterOfMass();
+    multicontact_locomotion_planner::calcHorizontal(horizontals);
+    horizontalRobot->calcForwardKinematics(false);
+    horizontalRobot->calcCenterOfMass();
+
 
 
 

@@ -1,5 +1,6 @@
 #include <multicontact_locomotion_planner/RobotState.h>
 #include <cnoid/MeshGenerator>
+#include <choreonoid_cddlib/choreonoid_cddlib.h>
 
 namespace multicontact_locomotion_planner{
 
@@ -23,28 +24,28 @@ namespace multicontact_locomotion_planner{
     return contact;
   }
 
-  std::shared_ptr<rb_rrt_solver::Condition> Mode::generateCondition(const std::unordered_map<std::string, std::shared_ptr<EndEffector> >& endEffectors, const std::shared_ptr<Environment>& environment){
-    std::shared_ptr<rb_rrt_solver::ConditionAND> conditions = std::make_shared<rb_rrt_solver::ConditionAND>();
+  std::shared_ptr<ik_constraint2::IKConstraint> Mode::generateCondition(const std::unordered_map<std::string, std::shared_ptr<EndEffector> >& endEffectors, const std::shared_ptr<Environment>& environment){
+    std::shared_ptr<ik_constraint2::ANDConstraint> conditions = std::make_shared<ik_constraint2::ANDConstraint>();
     for(int i=0;i<this->rootConstraints.size();i++){
-      std::shared_ptr<rb_rrt_solver::ConditionConstraint> condition1 = std::make_shared<rb_rrt_solver::ConditionConstraint>();
-      condition1->constraint = this->rootConstraints[i];
-      conditions->children.push_back(condition1);
+      conditions->children().push_back(this->rootConstraints[i]);
     }
     for(int i=0;i<eefs.size();i++){
-      std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = this->reachabilityConstraintsSmall[i];
+      std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = this->reachabilityConstraintsSmall[i];
       std::shared_ptr<EndEffector> endEffector = endEffectors.find(this->eefs[i])->second;
       const cnoid::BodyPtr& supportBody =
         (endEffector->environmentType==EndEffector::EnvironmentType::LARGESURFACE) ? environment->largeSurfacesBody :
         (endEffector->environmentType==EndEffector::EnvironmentType::SMALLSURFACE) ? environment->smallSurfacesBody :
         environment->graspsBody;
+
       constraint->B_link() = supportBody->rootLink();
-      constraint->B_link_vclipModel() = nullptr; // environmentのbodyは変化するので、キャッシュ削除
+      constraint->B_link_bulletModel() = nullptr; // environmentのbodyは変化するので、キャッシュ削除
+      constraint->useSingleMeshB() = false; // support polygonを個別にチェック
+      choreonoid_cddlib::convertToFACEExpressions(constraint->B_link()->collisionShape(),
+                                                  constraint->B_FACE_C(),
+                                                  constraint->B_FACE_dl(),
+                                                  constraint->B_FACE_du());
       constraint->updateBounds(); // キャッシュを内部に作る.
-      std::shared_ptr<rb_rrt_solver::ConditionConstraint> condition1 = std::make_shared<rb_rrt_solver::ConditionConstraint>();
-      condition1->constraint = constraint;
-      std::shared_ptr<rb_rrt_solver::ConditionNOT> condition2 = std::make_shared<rb_rrt_solver::ConditionNOT>();
-      condition2->child = condition1;
-      conditions->children.push_back(condition2);
+      conditions->children().push_back(constraint);
     }
     return conditions;
   }
@@ -59,7 +60,7 @@ namespace multicontact_locomotion_planner{
     excessContact.clear();
 
     for(int i=0;i<eefs.size();i++){
-      std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = isLarge ? this->reachabilityConstraintsLarge[i] : this->reachabilityConstraintsSmall[i];
+      std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = isLarge ? this->reachabilityConstraintsLarge[i] : this->reachabilityConstraintsSmall[i];
 
       if(currentContacts.find(eefs[i]) == currentContacts.end()){
         newEEF.push_back(eefs[i]);
@@ -76,9 +77,13 @@ namespace multicontact_locomotion_planner{
           tmpLink->setShape(group);
           tmpLink->T() = currentContacts.find(eefs[i])->second->link1->T() * currentContacts.find(eefs[i])->second->localPose1;
           constraint->B_link() = tmpLink;
+          choreonoid_cddlib::convertToFACEExpressions(constraint->B_link()->collisionShape(),
+                                                      constraint->B_FACE_C(),
+                                                      constraint->B_FACE_dl(),
+                                                      constraint->B_FACE_du());
         }
         constraint->updateBounds();
-        if(constraint->isSatisfied()){
+        if(!constraint->isSatisfied()){
           moveEEF.push_back(eefs[i]);
         }
       }

@@ -272,9 +272,9 @@ namespace multicontact_locomotion_planner{
     bool swingEEFFound = false;
     std::shared_ptr<Contact> breakContact = nullptr;
     std::shared_ptr<EndEffector> targetEEF = nullptr; // 次に接触させるEEF
-    std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> targetReachabilityConstraint; // large
+    std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> targetReachabilityConstraint; // large
     int subGoalIdx = -1;
-    std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> currentReachabilityConstraint; // large
+    std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> currentReachabilityConstraint; // large
 
     if(newEEF.size() > 0){ // 足りないcontactをmakeする
       targetEEF = param.endEffectors.find(newEEF[0])->second;
@@ -739,29 +739,106 @@ namespace multicontact_locomotion_planner{
 
     std::vector<cnoid::LinkPtr> variables;
     variables.push_back(param.abstractRobot->rootLink());
+    variables.push_back(param.horizontalRobot->rootLink());
 
-    std::shared_ptr<rb_rrt_solver::ConditionOR> conditions = std::make_shared<rb_rrt_solver::ConditionOR>();
-    for(std::unordered_map<std::string, std::shared_ptr<Mode> >::const_iterator it=param.modes.begin(); it!=param.modes.end(); it++){
-      conditions->children.push_back(it->second->generateCondition(param.endEffectors, environment));
+    std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > > constraints;
+
+    {
+      std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints0;
+      {
+        // horizontal
+        std::shared_ptr<ik_constraint2::PositionConstraint> constraint = std::make_shared<ik_constraint2::PositionConstraint>();
+        constraint->A_link() = param.abstractRobot->rootLink();
+        constraint->B_link() = param.horizontalRobot->rootLink();
+        constraint->eval_link() = param.horizontalRobot->rootLink();
+        constraint->weight() << 1.0, 1.0, 1.0, 0.0, 0.0, 1.0;
+        //constraint->debugLevel() = 2;
+        constraints0.push_back(constraint);
+      }
+      {
+        // horizontal
+        std::shared_ptr<ik_constraint2::PositionConstraint> constraint = std::make_shared<ik_constraint2::PositionConstraint>();
+        constraint->A_link() = param.horizontalRobot->rootLink();
+        constraint->B_link() = nullptr;
+        constraint->eval_link() = nullptr;
+        constraint->weight() << 0.0, 0.0, 0.0, 1.0, 1.0, 0.0;
+        //constraint->debugLevel() = 2;
+        constraints0.push_back(constraint);
+      }
+      {
+        // pitch > 0
+        std::shared_ptr<ik_constraint2::RegionConstraint> constraint = std::make_shared<ik_constraint2::RegionConstraint>();
+        constraint->A_link() = param.abstractRobot->rootLink();
+        constraint->A_localpos().translation() = cnoid::Vector3(0.1,0.0,0.0);
+        constraint->B_link() = param.abstractRobot->rootLink();
+        constraint->eval_link() = nullptr;
+        constraint->weightR().setZero();
+        constraint->C().resize(1,3);
+        constraint->C().insert(0,2) = 1.0;
+        constraint->dl().resize(1);
+        constraint->dl()[0] = -1e10;
+        constraint->du().resize(1);
+        constraint->du()[0] = 0.0;
+        //constraint->debugLevel() = 2;
+        constraints0.push_back(constraint);
+      }
+      {
+        // pitch < 90
+        std::shared_ptr<ik_constraint2::RegionConstraint> constraint = std::make_shared<ik_constraint2::RegionConstraint>();
+        constraint->A_link() = param.abstractRobot->rootLink();
+        constraint->A_localpos().translation() = cnoid::Vector3(0.0,0.0,-0.1);
+        constraint->B_link() = param.abstractRobot->rootLink();
+        constraint->eval_link() = nullptr;
+        constraint->weightR().setZero();
+        constraint->C().resize(1,3);
+        constraint->C().insert(0,2) = 1.0;
+        constraint->dl().resize(1);
+        constraint->dl()[0] = -1e10;
+        constraint->du().resize(1);
+        constraint->du()[0] = 0.0;
+        //constraint->debugLevel() = 2;
+        constraints0.push_back(constraint);
+      }
+      {
+        // roll = 0
+        std::shared_ptr<ik_constraint2::PositionConstraint> constraint = std::make_shared<ik_constraint2::PositionConstraint>();
+        constraint->A_link() = param.abstractRobot->rootLink();
+        constraint->A_localpos().translation() = cnoid::Vector3(0.0,0.1,0.0);
+        constraint->B_link() = param.abstractRobot->rootLink();
+        constraint->B_localpos().translation() = cnoid::Vector3(0.0,-0.1,0.0);
+        constraint->eval_link() = nullptr;
+        constraint->weight() << 0.0, 0.0, 1.0, 0.0, 0.0, 0.0;
+        //constraint->debugLevel() = 2;
+        constraints0.push_back(constraint);
+      }
+      constraints.push_back(constraints0);
     }
+
+    std::shared_ptr<ik_constraint2::ORConstraint> conditions = std::make_shared<ik_constraint2::ORConstraint>();
+    for(std::unordered_map<std::string, std::shared_ptr<Mode> >::const_iterator it=param.modes.begin(); it!=param.modes.end(); it++){
+      conditions->children().push_back(it->second->generateCondition(param.endEffectors, environment));
+    }
+    std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints1{conditions};
+    constraints.push_back(constraints1);
 
     std::vector<double> goals;
     {
       cnoid::Position org = param.abstractRobot->rootLink()->T();
       param.abstractRobot->rootLink()->T() = goal;
+      param.horizontalRobot->rootLink()->T() = orientCoordToAxis(param.abstractRobot->rootLink()->T(), cnoid::Vector3::UnitZ(), cnoid::Vector3::UnitZ());
       rb_rrt_solver::link2Frame(variables, goals);
       param.abstractRobot->rootLink()->T() = org;
+      param.horizontalRobot->rootLink()->T() = orientCoordToAxis(param.abstractRobot->rootLink()->T(), cnoid::Vector3::UnitZ(), cnoid::Vector3::UnitZ());
     }
 
 
     std::shared_ptr<std::vector<std::vector<double> > > path = std::make_shared<std::vector<std::vector<double> > >();
-    if(!rb_rrt_solver::solveRBRRT(variables,
-                                  param.horizontals,
-                                  conditions,
-                                  goals,
-                                  path,
-                                  param.rbrrtParam
-                                  )){
+    if(!global_inverse_kinematics_solver::solveGIK(variables,
+                                                   constraints,
+                                                   goals,
+                                                   param.rbrrtParam,
+                                                   path
+                                                   )){
       std::cerr << "solveRBRRT failed" << std::endl;
       return false;
     }
@@ -775,12 +852,14 @@ namespace multicontact_locomotion_planner{
       multicontact_locomotion_planner::calcHorizontal(param.horizontals);
       param.horizontalRobot->calcForwardKinematics(false);
 
+      conditions->updateBounds();
+
       double maxScore = -1;
       int idx = 0;
       std::vector<std::string> moveEEF, newEEF, excessContact;
       for(std::unordered_map<std::string, std::shared_ptr<Mode> >::const_iterator it=param.modes.begin(); it!=param.modes.end(); it++){
         if((it->second->score > maxScore || prevMode == it->first) &&
-           conditions->children[idx]->isValid()){
+           conditions->children()[idx]->isSatisfied()){
           if(i!=0 || param.modes.find(it->first)->second->isContactSatisfied(currentContacts, true, moveEEF, newEEF, excessContact)) { // i = 0の場合、初期姿勢を満たしている必要がある.
             if(prevMode == it->first) {
               maxScore = it->second->score;

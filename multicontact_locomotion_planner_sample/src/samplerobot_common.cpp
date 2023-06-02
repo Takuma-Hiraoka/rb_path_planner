@@ -7,6 +7,7 @@
 #include <ros/package.h>
 #include <convex_polyhedron_intersection/convex_polyhedron_intersection.h>
 #include <choreonoid_qhull/choreonoid_qhull.h>
+#include <choreonoid_cddlib/choreonoid_cddlib.h>
 
 namespace multicontact_locomotion_planner_sample{
 
@@ -1010,21 +1011,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("rleg");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGSTAND");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGSTANDSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1033,21 +1048,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("lleg");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGSTAND");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGSTANDSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1073,21 +1102,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("rtoe");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGBACK");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGBACKSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1096,21 +1139,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("rarm");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARMUPPER");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARMUPPERSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1119,21 +1176,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("ltoe");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGBACK");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGBACKSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1142,21 +1213,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("larm");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARMUPPER");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARMUPPERSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1169,22 +1254,6 @@ namespace multicontact_locomotion_planner_sample{
         constraint->field() = field;
         constraint->tolerance() = 0.04;
         constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
-        mode->rootConstraints.push_back(constraint);
-      }
-      {
-        // 前傾
-        std::shared_ptr<ik_constraint2::RegionConstraint> constraint = std::make_shared<ik_constraint2::RegionConstraint>();
-        constraint->A_link() = abstractRobot->rootLink();
-        constraint->A_localpos().translation() = cnoid::Vector3(0.1,0.0,0.0);
-        constraint->B_link() = abstractRobot->rootLink();
-        constraint->eval_link() = nullptr;
-        constraint->weightR().setZero();
-        constraint->C().resize(1,3);
-        constraint->C().insert(0,2) = 1.0;
-        constraint->dl().resize(1);
-        constraint->dl()[0] = -1e10;
-        constraint->du().resize(1);
-        constraint->du()[0] = 0.0;
         mode->rootConstraints.push_back(constraint);
       }
       modes[mode->name]=mode;
@@ -1197,21 +1266,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("rleg");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGBACK");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGBACKSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1220,21 +1303,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("rarm");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARMUPPER");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARMUPPERSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1243,21 +1340,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("lleg");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGBACK");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGBACKSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1266,21 +1377,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("larm");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARMUPPER");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARMUPPERSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1293,22 +1418,6 @@ namespace multicontact_locomotion_planner_sample{
         constraint->field() = field;
         constraint->tolerance() = 0.04;
         constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
-        mode->rootConstraints.push_back(constraint);
-      }
-      {
-        // 前傾
-        std::shared_ptr<ik_constraint2::RegionConstraint> constraint = std::make_shared<ik_constraint2::RegionConstraint>();
-        constraint->A_link() = abstractRobot->rootLink();
-        constraint->A_localpos().translation() = cnoid::Vector3(0.1,0.0,0.0);
-        constraint->B_link() = abstractRobot->rootLink();
-        constraint->eval_link() = nullptr;
-        constraint->weightR().setZero();
-        constraint->C().resize(1,3);
-        constraint->C().insert(0,2) = 1.0;
-        constraint->dl().resize(1);
-        constraint->dl()[0] = -1e10;
-        constraint->du().resize(1);
-        constraint->du()[0] = 0.0;
         mode->rootConstraints.push_back(constraint);
       }
       modes[mode->name]=mode;
@@ -1322,21 +1431,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("rtoe");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEG");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1345,21 +1468,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("rhand");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARM");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARMSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1368,21 +1505,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("ltoe");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEG");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1391,21 +1542,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("lhand");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARM");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARMSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1418,22 +1583,6 @@ namespace multicontact_locomotion_planner_sample{
         constraint->field() = field;
         constraint->tolerance() = 0.04;
         constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
-        mode->rootConstraints.push_back(constraint);
-      }
-      {
-        // 前傾
-        std::shared_ptr<ik_constraint2::RegionConstraint> constraint = std::make_shared<ik_constraint2::RegionConstraint>();
-        constraint->A_link() = abstractRobot->rootLink();
-        constraint->A_localpos().translation() = cnoid::Vector3(0.1,0.0,0.0);
-        constraint->B_link() = abstractRobot->rootLink();
-        constraint->eval_link() = nullptr;
-        constraint->weightR().setZero();
-        constraint->C().resize(1,3);
-        constraint->C().insert(0,2) = 1.0;
-        constraint->dl().resize(1);
-        constraint->dl()[0] = -1e10;
-        constraint->du().resize(1);
-        constraint->du()[0] = 0.0;
         mode->rootConstraints.push_back(constraint);
       }
       modes[mode->name]=mode;
@@ -1446,21 +1595,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("rleg");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEG");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1469,21 +1632,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("rhand");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARM");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARMSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1492,21 +1669,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("lleg");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEG");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1515,21 +1706,35 @@ namespace multicontact_locomotion_planner_sample{
       {
         mode->eefs.push_back("lhand");
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARM");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsLarge.push_back(constraint);
         }
         {
-          std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
+          std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARMSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->tolerance() = 0.01;
-          constraint->useSingleMesh() = false; // support polygonを個別にチェック
+          constraint->precision() = 0.01;
+          constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
+          choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
+                                                     constraint->A_FACE_C()[0],
+                                                     constraint->A_FACE_dl()[0],
+                                                     constraint->A_FACE_du()[0]);
+          constraint->B_FACE_C() = constraint->A_FACE_C();
+          constraint->B_FACE_dl() = constraint->A_FACE_dl();
+          constraint->B_FACE_du() = constraint->A_FACE_du();
           constraint->debugLevel() = 0;
           constraint->updateBounds(); // キャッシュを内部に作る.
           mode->reachabilityConstraintsSmall.push_back(constraint);
@@ -1542,22 +1747,6 @@ namespace multicontact_locomotion_planner_sample{
         constraint->field() = field;
         constraint->tolerance() = 0.04;
         constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
-        mode->rootConstraints.push_back(constraint);
-      }
-      {
-        // 前傾
-        std::shared_ptr<ik_constraint2::RegionConstraint> constraint = std::make_shared<ik_constraint2::RegionConstraint>();
-        constraint->A_link() = abstractRobot->rootLink();
-        constraint->A_localpos().translation() = cnoid::Vector3(0.1,0.0,0.0);
-        constraint->B_link() = abstractRobot->rootLink();
-        constraint->eval_link() = nullptr;
-        constraint->weightR().setZero();
-        constraint->C().resize(1,3);
-        constraint->C().insert(0,2) = 1.0;
-        constraint->dl().resize(1);
-        constraint->dl()[0] = -1e10;
-        constraint->du().resize(1);
-        constraint->du()[0] = 0.0;
         mode->rootConstraints.push_back(constraint);
       }
       modes[mode->name]=mode;
