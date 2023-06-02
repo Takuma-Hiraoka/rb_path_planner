@@ -9,6 +9,7 @@
 #include <choreonoid_qhull/choreonoid_qhull.h>
 #include <ik_constraint2_region_cdd/ik_constraint2_region_cdd.h>
 #include <scfr_solver/scfr_solver.h>
+#include <bulleteigen/bulleteigen.h>
 
 namespace multicontact_locomotion_planner{
 
@@ -222,12 +223,17 @@ namespace multicontact_locomotion_planner{
                 std::string& swingEEF,
                 const MLPParam& param){
 
-    if(param.debugLevel >= 3){
-      if(param.viewer){
-        param.viewer->drawObjects();
+    struct timespec prevTime;
+    if(param.debugLevel >= 1){
+      clock_gettime(CLOCK_MONOTONIC, &prevTime);
+
+      if(param.debugLevel >= 3){
+        if(param.viewer){
+          param.viewer->drawObjects();
+        }
+        std::cerr << "start MSL. Press ENTER:" << std::endl;
+        getchar();
       }
-      std::cerr << "start MSL. Press ENTER:" << std::endl;
-      getchar();
     }
 
     std::vector<double> currentAngle;
@@ -258,15 +264,21 @@ namespace multicontact_locomotion_planner{
     }
 
 
-    if(param.debugLevel>=2){
-      std::cerr << "current: " << currentIdx << " " << targetRootPath[currentIdx].second << " [" << targetRootPath[currentIdx].first[0] << " " << targetRootPath[currentIdx].first[1] << " " << targetRootPath[currentIdx].first[2] << " " << targetRootPath[currentIdx].first[3] << " " << targetRootPath[currentIdx].first[4] << " " << targetRootPath[currentIdx].first[5] << " " << targetRootPath[currentIdx].first[6] << "]" << std::endl;
-      std::cerr << " newEEF";
-      for(int i=0;i<newEEF.size();i++) std::cerr << " " << newEEF[i];
-      std::cerr << " excessContact";
-      for(int i=0;i<excessContact.size();i++) std::cerr << " " << excessContact[i];
-      std::cerr << " moveEEF";
-      for(int i=0;i<moveEEF.size();i++) std::cerr << " " << moveEEF[i];
-      std::cerr << std::endl;
+    if(param.debugLevel>=1){
+      struct timespec currentTime;
+      clock_gettime(CLOCK_MONOTONIC, &currentTime);
+      std::cerr << "currentIdx: "<<  (currentTime.tv_sec - prevTime.tv_sec) + (currentTime.tv_nsec - prevTime.tv_nsec) * 1e-9 << std::endl;
+
+      if(param.debugLevel>=2){
+        std::cerr << "current: " << currentIdx << " " << targetRootPath[currentIdx].second << " [" << targetRootPath[currentIdx].first[0] << " " << targetRootPath[currentIdx].first[1] << " " << targetRootPath[currentIdx].first[2] << " " << targetRootPath[currentIdx].first[3] << " " << targetRootPath[currentIdx].first[4] << " " << targetRootPath[currentIdx].first[5] << " " << targetRootPath[currentIdx].first[6] << "]" << std::endl;
+        std::cerr << " newEEF";
+        for(int i=0;i<newEEF.size();i++) std::cerr << " " << newEEF[i];
+        std::cerr << " excessContact";
+        for(int i=0;i<excessContact.size();i++) std::cerr << " " << excessContact[i];
+        std::cerr << " moveEEF";
+        for(int i=0;i<moveEEF.size();i++) std::cerr << " " << moveEEF[i];
+        std::cerr << std::endl;
+      }
     }
 
     bool swingEEFFound = false;
@@ -381,9 +393,16 @@ namespace multicontact_locomotion_planner{
       return false;
     }
 
-    if(param.debugLevel>=2){
-      std::cerr << "subGoal: " << subGoalIdx << " " << targetRootPath[subGoalIdx].second << " [" << targetRootPath[subGoalIdx].first[0] << " " << targetRootPath[subGoalIdx].first[1] << " " << targetRootPath[subGoalIdx].first[2] << " " << targetRootPath[subGoalIdx].first[3] << " " << targetRootPath[subGoalIdx].first[4] << " " << targetRootPath[subGoalIdx].first[5] << " " << targetRootPath[subGoalIdx].first[6] << "]" << std::endl;
+    if(param.debugLevel>=1){
+      struct timespec currentTime;
+      clock_gettime(CLOCK_MONOTONIC, &currentTime);
+      std::cerr << "subGoal: "<<  (currentTime.tv_sec - prevTime.tv_sec) + (currentTime.tv_nsec - prevTime.tv_nsec) * 1e-9 << std::endl;
+
+      if(param.debugLevel>=2){
+        std::cerr << "subGoal: " << subGoalIdx << " " << targetRootPath[subGoalIdx].second << " [" << targetRootPath[subGoalIdx].first[0] << " " << targetRootPath[subGoalIdx].first[1] << " " << targetRootPath[subGoalIdx].first[2] << " " << targetRootPath[subGoalIdx].first[3] << " " << targetRootPath[subGoalIdx].first[4] << " " << targetRootPath[subGoalIdx].first[5] << " " << targetRootPath[subGoalIdx].first[6] << "]" << std::endl;
+      }
     }
+
 
     std::shared_ptr<ik_constraint2::PositionConstraint> subGoalConstraint = std::make_shared<ik_constraint2::PositionConstraint>();
     subGoalConstraint->A_link() = param.robot->rootLink();
@@ -456,12 +475,18 @@ namespace multicontact_locomotion_planner{
           return false;
         }
 
-        if(param.debugLevel >= 3){
-          if(param.viewer){
-            param.viewer->drawObjects();
+        if(param.debugLevel>=1){
+          struct timespec currentTime;
+          clock_gettime(CLOCK_MONOTONIC, &currentTime);
+          std::cerr << "break contact: "<<  (currentTime.tv_sec - prevTime.tv_sec) + (currentTime.tv_nsec - prevTime.tv_nsec) * 1e-9 << std::endl;
+
+          if(param.debugLevel >= 3){
+            if(param.viewer){
+              param.viewer->drawObjects();
+            }
+            std::cerr << "break contact. Press ENTER:" << std::endl;
+            getchar();
           }
-          std::cerr << "break contact. Press ENTER:" << std::endl;
-          getchar();
         }
 
       }
@@ -510,12 +535,18 @@ namespace multicontact_locomotion_planner{
         }
 
 
-        if(param.debugLevel >= 3){
-          if(param.viewer){
-            param.viewer->drawObjects();
+        if(param.debugLevel>=1){
+          struct timespec currentTime;
+          clock_gettime(CLOCK_MONOTONIC, &currentTime);
+          std::cerr << "post contact: "<<  (currentTime.tv_sec - prevTime.tv_sec) + (currentTime.tv_nsec - prevTime.tv_nsec) * 1e-9 << std::endl;
+
+          if(param.debugLevel >= 3){
+            if(param.viewer){
+              param.viewer->drawObjects();
+            }
+            std::cerr << "post contact. Press ENTER:" << std::endl;
+            getchar();
           }
-          std::cerr << "post contact. Press ENTER:" << std::endl;
-          getchar();
         }
 
       }
@@ -555,6 +586,19 @@ namespace multicontact_locomotion_planner{
         environment->grasps;
       std::vector<ContactableRegion> targetRegion;
       for(int i=0;i<candidate.size();i++){
+        {
+          // convex_polyhedron_intersection::intersectionは時間がかかるので、まずbulletで干渉チェックして干渉していなければ飛ばす
+          std::shared_ptr<btConvexShape> regionBulletModel = bulleteigen::convertToBulletModel(region);
+          double dist; Eigen::Vector3d q1, q2;
+          bool solved = bulleteigen::computeDistance(candidate[i].bulletModel,
+                                                     candidate[i].pose.translation(),
+                                                     candidate[i].pose.linear(),
+                                                     regionBulletModel,
+                                                     cnoid::Vector3::Zero(),
+                                                     cnoid::Matrix3d::Identity(),
+                                                     dist, q1, q2);
+          if(!solved || dist > 0.0) continue;
+        }
         Eigen::Matrix<double, 3, Eigen::Dynamic> shape = candidate[i].pose * candidate[i].shape;
         Eigen::MatrixXd intersection;
         bool solved = convex_polyhedron_intersection::intersection(shape, region, intersection);
@@ -577,6 +621,13 @@ namespace multicontact_locomotion_planner{
 
         return false;
       }
+
+      if(param.debugLevel>=1){
+        struct timespec currentTime;
+        clock_gettime(CLOCK_MONOTONIC, &currentTime);
+        std::cerr << "target Region: "<<  (currentTime.tv_sec - prevTime.tv_sec) + (currentTime.tv_nsec - prevTime.tv_nsec) * 1e-9 << std::endl;
+      }
+
 
       std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > > goals;
       for(int i=0;i<targetRegion.size();i++){
@@ -617,12 +668,18 @@ namespace multicontact_locomotion_planner{
       param.robot->calcForwardKinematics(false);
       param.robot->calcCenterOfMass();
 
-      if(param.debugLevel >= 3){
-        if(param.viewer){
-          param.viewer->drawObjects();
-        }
-        std::cerr << "swing. Press ENTER:" << std::endl;
-        getchar();
+      if(param.debugLevel>=1){
+          struct timespec currentTime;
+          clock_gettime(CLOCK_MONOTONIC, &currentTime);
+          std::cerr << "swing: "<<  (currentTime.tv_sec - prevTime.tv_sec) + (currentTime.tv_nsec - prevTime.tv_nsec) * 1e-9 << std::endl;
+
+          if(param.debugLevel >= 3){
+            if(param.viewer){
+              param.viewer->drawObjects();
+            }
+            std::cerr << "swing. Press ENTER:" << std::endl;
+            getchar();
+          }
       }
 
 
@@ -679,14 +736,19 @@ namespace multicontact_locomotion_planner{
 
       currentContactsAfterMake[targetEEF->name] = targetEEF->generateContact();
 
-      if(param.debugLevel >= 3){
-        if(param.viewer){
-          param.viewer->drawObjects();
-        }
-        std::cerr << "make contact. Press ENTER:" << std::endl;
-        getchar();
-      }
+      if(param.debugLevel>=1){
+        struct timespec currentTime;
+        clock_gettime(CLOCK_MONOTONIC, &currentTime);
+        std::cerr << "make contact: "<<  (currentTime.tv_sec - prevTime.tv_sec) + (currentTime.tv_nsec - prevTime.tv_nsec) * 1e-9 << std::endl;
 
+        if(param.debugLevel >= 3){
+          if(param.viewer){
+            param.viewer->drawObjects();
+          }
+          std::cerr << "make contact. Press ENTER:" << std::endl;
+        getchar();
+        }
+      }
     }
 
 
@@ -844,17 +906,6 @@ namespace multicontact_locomotion_planner{
       return false;
     }
 
-    for(int i=0;i<path->size();i++){
-      frame2Link(path->at(i), variables);
-      param.abstractRobot->calcForwardKinematics(false);
-      //multicontact_locomotion_planner::calcHorizontal(param.horizontals);
-      param.horizontalRobot->calcForwardKinematics(false);
-
-      conditions->updateBounds();
-
-      getchar(); param.rbrrtParam.viewer->drawObjects();
-    }
-
     outputRootPath.resize(path->size());
     std::string prevMode = "";
     for(int i=0;i<path->size();i++){
@@ -866,8 +917,14 @@ namespace multicontact_locomotion_planner{
 
       conditions->updateBounds();
 
-      std::cerr << (conditions->isSatisfied() == true) << std::endl;
-      getchar(); param.rbrrtParam.viewer->drawObjects();
+      if(param.debugLevel >= 3){
+        if(param.viewer){
+          param.viewer->drawOn(conditions->getDrawOnObjects());
+          param.viewer->drawObjects();
+          std::cerr << "isSatisfied:" << conditions->isSatisfied() << ". Press ENTER:" << std::endl;
+          getchar();
+        }
+      }
 
       double maxScore = -1;
       int idx = 0;

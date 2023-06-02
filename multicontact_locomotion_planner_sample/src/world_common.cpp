@@ -1,6 +1,8 @@
 #include "world_common.h"
 
 #include <cnoid/MeshGenerator>
+#include <choreonoid_bullet/choreonoid_bullet.h>
+#include <choreonoid_qhull/choreonoid_qhull.h>
 
 namespace multicontact_locomotion_planner_sample{
   void generateStepWorld(cnoid::BodyPtr& obstacle, // for visual
@@ -71,6 +73,9 @@ namespace multicontact_locomotion_planner_sample{
       cnoid::SgGroupPtr smallSurfaceGroup = new cnoid::SgGroup();
       environment->smallSurfacesBody->rootLink()->setShape(smallSurfaceGroup);
       environment->smallSurfacesBody->setRootLink(environment->smallSurfacesBody->rootLink());
+      cnoid::SgGroupPtr graspGroup = new cnoid::SgGroup();
+      environment->graspsBody->rootLink()->setShape(graspGroup);
+      environment->graspsBody->setRootLink(environment->graspsBody->rootLink());
       {
         multicontact_locomotion_planner::ContactableRegion region;
         region.pose.translation() = cnoid::Vector3(0.0,0.0,0.0);
@@ -79,10 +84,7 @@ namespace multicontact_locomotion_planner_sample{
         region.shape.col(1) = cnoid::Vector3(-1.9,+0.9,0.0);
         region.shape.col(2) = cnoid::Vector3(-1.9,-0.9,0.0);
         region.shape.col(3) = cnoid::Vector3(+1.9,-0.9,0.0);
-        region.weightR = cnoid::Vector3(1,1,0);
-        environment->largeSurfaces.push_back(region);
 
-        cnoid::LinkPtr link = new cnoid::Link();
         cnoid::SgShapePtr shape = new cnoid::SgShape();
         cnoid::MeshGenerator::Extrusion extrusion;
         for(int i=0;i<region.shape.cols();i++){
@@ -95,6 +97,11 @@ namespace multicontact_locomotion_planner_sample{
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         shape->setMesh(meshGenerator.generateExtrusion(extrusion));
+
+        region.bulletModel = choreonoid_bullet::convertToBulletModel(shape);
+        region.weightR = cnoid::Vector3(1,1,0);
+        environment->largeSurfaces.push_back(region);
+
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0);
         material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
@@ -103,6 +110,7 @@ namespace multicontact_locomotion_planner_sample{
         posTransform->T() = region.pose;
         posTransform->addChild(shape);
         largeSurfaceGroup->addChild(posTransform);
+
       }
       {
         multicontact_locomotion_planner::ContactableRegion region;
@@ -112,10 +120,7 @@ namespace multicontact_locomotion_planner_sample{
         region.shape.col(1) = cnoid::Vector3(-1.98,+0.98,0.0);
         region.shape.col(2) = cnoid::Vector3(-1.98,-0.98,0.0);
         region.shape.col(3) = cnoid::Vector3(+1.98,-0.98,0.0);
-        region.weightR = cnoid::Vector3(1,1,0);
-        environment->smallSurfaces.push_back(region);
 
-        cnoid::LinkPtr link = new cnoid::Link();
         cnoid::SgShapePtr shape = new cnoid::SgShape();
         cnoid::MeshGenerator::Extrusion extrusion;
         for(int i=0;i<region.shape.cols();i++){
@@ -128,6 +133,11 @@ namespace multicontact_locomotion_planner_sample{
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         shape->setMesh(meshGenerator.generateExtrusion(extrusion));
+
+        region.bulletModel = choreonoid_bullet::convertToBulletModel(shape);
+        region.weightR = cnoid::Vector3(1,1,0);
+        environment->smallSurfaces.push_back(region);
+
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0);
         material->setDiffuseColor(cnoid::Vector3f(0.0,0.0,1.0));
@@ -136,6 +146,7 @@ namespace multicontact_locomotion_planner_sample{
         posTransform->T() = region.pose;
         posTransform->addChild(shape);
         smallSurfaceGroup->addChild(posTransform);
+
       }
       {
         multicontact_locomotion_planner::ContactableRegion region;
@@ -145,10 +156,7 @@ namespace multicontact_locomotion_planner_sample{
         region.shape.col(1) = cnoid::Vector3(-0.4,+0.4,0.0);
         region.shape.col(2) = cnoid::Vector3(-0.4,-0.4,0.0);
         region.shape.col(3) = cnoid::Vector3(+0.4,-0.4,0.0);
-        region.weightR = cnoid::Vector3(1,1,0);
-        environment->largeSurfaces.push_back(region);
 
-        cnoid::LinkPtr link = new cnoid::Link();
         cnoid::SgShapePtr shape = new cnoid::SgShape();
         cnoid::MeshGenerator::Extrusion extrusion;
         for(int i=0;i<region.shape.cols();i++){
@@ -161,6 +169,11 @@ namespace multicontact_locomotion_planner_sample{
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         shape->setMesh(meshGenerator.generateExtrusion(extrusion));
+
+        region.bulletModel = choreonoid_bullet::convertToBulletModel(shape);
+        region.weightR = cnoid::Vector3(1,1,0);
+        environment->largeSurfaces.push_back(region);
+
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0);
         material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
@@ -169,6 +182,7 @@ namespace multicontact_locomotion_planner_sample{
         posTransform->T() = region.pose;
         posTransform->addChild(shape);
         largeSurfaceGroup->addChild(posTransform);
+
       }
       {
         multicontact_locomotion_planner::ContactableRegion region;
@@ -178,10 +192,7 @@ namespace multicontact_locomotion_planner_sample{
         region.shape.col(1) = cnoid::Vector3(-0.48,+0.48,0.0);
         region.shape.col(2) = cnoid::Vector3(-0.48,-0.48,0.0);
         region.shape.col(3) = cnoid::Vector3(+0.48,-0.48,0.0);
-        region.weightR = cnoid::Vector3(1,1,0);
-        environment->smallSurfaces.push_back(region);
 
-        cnoid::LinkPtr link = new cnoid::Link();
         cnoid::SgShapePtr shape = new cnoid::SgShape();
         cnoid::MeshGenerator::Extrusion extrusion;
         for(int i=0;i<region.shape.cols();i++){
@@ -194,6 +205,11 @@ namespace multicontact_locomotion_planner_sample{
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         shape->setMesh(meshGenerator.generateExtrusion(extrusion));
+
+        region.bulletModel = choreonoid_bullet::convertToBulletModel(shape);
+        region.weightR = cnoid::Vector3(1,1,0);
+        environment->smallSurfaces.push_back(region);
+
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0);
         material->setDiffuseColor(cnoid::Vector3f(0.0,0.0,1.0));
@@ -202,7 +218,13 @@ namespace multicontact_locomotion_planner_sample{
         posTransform->T() = region.pose;
         posTransform->addChild(shape);
         smallSurfaceGroup->addChild(posTransform);
+
       }
+
+      // bulletModelの原点の位置が違うので, 上とはべつで再度変換する必要がある
+      environment->largeSurfacesBulletModel = choreonoid_bullet::convertToBulletModels(environment->largeSurfacesBody->rootLink()->collisionShape());
+      environment->smallSurfacesBulletModel = choreonoid_bullet::convertToBulletModels(environment->smallSurfacesBody->rootLink()->collisionShape());
+      environment->graspsBulletModel = choreonoid_bullet::convertToBulletModels(environment->graspsBody->rootLink()->collisionShape());
     }
 
   }
@@ -298,10 +320,7 @@ namespace multicontact_locomotion_planner_sample{
         region.shape.col(1) = cnoid::Vector3(-1.9,+0.9,0.0);
         region.shape.col(2) = cnoid::Vector3(-1.9,-0.9,0.0);
         region.shape.col(3) = cnoid::Vector3(+1.9,-0.9,0.0);
-        region.weightR = cnoid::Vector3(1,1,0);
-        environment->largeSurfaces.push_back(region);
 
-        cnoid::LinkPtr link = new cnoid::Link();
         cnoid::SgShapePtr shape = new cnoid::SgShape();
         cnoid::MeshGenerator::Extrusion extrusion;
         for(int i=0;i<region.shape.cols();i++){
@@ -314,6 +333,11 @@ namespace multicontact_locomotion_planner_sample{
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         shape->setMesh(meshGenerator.generateExtrusion(extrusion));
+
+        region.bulletModel = choreonoid_bullet::convertToBulletModel(shape);
+        region.weightR = cnoid::Vector3(1,1,0);
+        environment->largeSurfaces.push_back(region);
+
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0);
         material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
@@ -331,10 +355,7 @@ namespace multicontact_locomotion_planner_sample{
         region.shape.col(1) = cnoid::Vector3(-1.98,+0.98,0.0);
         region.shape.col(2) = cnoid::Vector3(-1.98,-0.98,0.0);
         region.shape.col(3) = cnoid::Vector3(+1.98,-0.98,0.0);
-        region.weightR = cnoid::Vector3(1,1,0);
-        environment->smallSurfaces.push_back(region);
 
-        cnoid::LinkPtr link = new cnoid::Link();
         cnoid::SgShapePtr shape = new cnoid::SgShape();
         cnoid::MeshGenerator::Extrusion extrusion;
         for(int i=0;i<region.shape.cols();i++){
@@ -347,6 +368,11 @@ namespace multicontact_locomotion_planner_sample{
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         shape->setMesh(meshGenerator.generateExtrusion(extrusion));
+
+        region.bulletModel = choreonoid_bullet::convertToBulletModel(shape);
+        region.weightR = cnoid::Vector3(1,1,0);
+        environment->smallSurfaces.push_back(region);
+
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0);
         material->setDiffuseColor(cnoid::Vector3f(0.0,0.0,1.0));
@@ -364,10 +390,7 @@ namespace multicontact_locomotion_planner_sample{
         region.shape.col(1) = cnoid::Vector3(-0.4,+0.4,0.0);
         region.shape.col(2) = cnoid::Vector3(-0.4,-0.4,0.0);
         region.shape.col(3) = cnoid::Vector3(+0.4,-0.4,0.0);
-        region.weightR = cnoid::Vector3(1,1,0);
-        environment->largeSurfaces.push_back(region);
 
-        cnoid::LinkPtr link = new cnoid::Link();
         cnoid::SgShapePtr shape = new cnoid::SgShape();
         cnoid::MeshGenerator::Extrusion extrusion;
         for(int i=0;i<region.shape.cols();i++){
@@ -380,6 +403,11 @@ namespace multicontact_locomotion_planner_sample{
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         shape->setMesh(meshGenerator.generateExtrusion(extrusion));
+
+        region.bulletModel = choreonoid_bullet::convertToBulletModel(shape);
+        region.weightR = cnoid::Vector3(1,1,0);
+        environment->largeSurfaces.push_back(region);
+
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0);
         material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
@@ -397,10 +425,7 @@ namespace multicontact_locomotion_planner_sample{
         region.shape.col(1) = cnoid::Vector3(-0.48,+0.48,0.0);
         region.shape.col(2) = cnoid::Vector3(-0.48,-0.48,0.0);
         region.shape.col(3) = cnoid::Vector3(+0.48,-0.48,0.0);
-        region.weightR = cnoid::Vector3(1,1,0);
-        environment->smallSurfaces.push_back(region);
 
-        cnoid::LinkPtr link = new cnoid::Link();
         cnoid::SgShapePtr shape = new cnoid::SgShape();
         cnoid::MeshGenerator::Extrusion extrusion;
         for(int i=0;i<region.shape.cols();i++){
@@ -413,6 +438,11 @@ namespace multicontact_locomotion_planner_sample{
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         extrusion.scale.push_back(cnoid::Vector2(1,1));
         shape->setMesh(meshGenerator.generateExtrusion(extrusion));
+
+        region.bulletModel = choreonoid_bullet::convertToBulletModel(shape);
+        region.weightR = cnoid::Vector3(1,1,0);
+        environment->smallSurfaces.push_back(region);
+
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0);
         material->setDiffuseColor(cnoid::Vector3f(0.0,0.0,1.0));
@@ -423,54 +453,90 @@ namespace multicontact_locomotion_planner_sample{
         smallSurfaceGroup->addChild(posTransform);
       }
       for(int i=1;i<7;i++){
-        multicontact_locomotion_planner::ContactableRegion region;
-        region.pose.translation() = cnoid::Vector3(0.8,0.0,i*0.3);
-        region.shape.resize(3,4);
-        region.shape.col(0) = cnoid::Vector3(+0.005,+0.48,0.0);
-        region.shape.col(1) = cnoid::Vector3(-0.005,+0.48,0.0);
-        region.shape.col(2) = cnoid::Vector3(-0.005,-0.48,0.0);
-        region.shape.col(3) = cnoid::Vector3(+0.005,-0.48,0.0);
-        region.weightR = cnoid::Vector3(1,1,0);
-        environment->smallSurfaces.push_back(region);
+        {
+          multicontact_locomotion_planner::ContactableRegion region;
+          region.pose.translation() = cnoid::Vector3(0.8,0.0,i*0.3);
+          region.shape.resize(3,4);
+          region.shape.col(0) = cnoid::Vector3(+0.005,+0.48,0.0);
+          region.shape.col(1) = cnoid::Vector3(-0.005,+0.48,0.0);
+          region.shape.col(2) = cnoid::Vector3(-0.005,-0.48,0.0);
+          region.shape.col(3) = cnoid::Vector3(+0.005,-0.48,0.0);
 
-        multicontact_locomotion_planner::ContactableRegion regionGrasp;
-        regionGrasp.pose.translation() = cnoid::Vector3(0.9,0.0,-0.025 + i*0.3);
-        regionGrasp.pose.linear() = (cnoid::Matrix3() <<
-                                     0, 0, -1,
-                                     1, 0, 0,
-                                     0, -1, 0).finished();
-        regionGrasp.shape.resize(3,2);
-        regionGrasp.shape.col(0) = cnoid::Vector3(+0.48,0.0,0.0);
-        regionGrasp.shape.col(1) = cnoid::Vector3(-0.48,0.0,0.0);
-        regionGrasp.weightR = cnoid::Vector3(0,1,1);
-        environment->grasps.push_back(regionGrasp);
-        regionGrasp.pose.linear() *= -1;
-        environment->grasps.push_back(regionGrasp); // X軸反転
+          cnoid::SgShapePtr shape = new cnoid::SgShape();
+          cnoid::MeshGenerator::Extrusion extrusion;
+          for(int i=0;i<region.shape.cols();i++){
+            extrusion.crossSection.push_back(region.shape.col(i).head<2>());
+          }
+          extrusion.spine.push_back(cnoid::Vector3(0,0,-0.001));
+          extrusion.spine.push_back(cnoid::Vector3(0,0,0.0));
+          extrusion.orientation.push_back(cnoid::AngleAxis(0, cnoid::Vector3::UnitX()));
+          extrusion.orientation.push_back(cnoid::AngleAxis(0, cnoid::Vector3::UnitX()));
+          extrusion.scale.push_back(cnoid::Vector2(1,1));
+          extrusion.scale.push_back(cnoid::Vector2(1,1));
+          shape->setMesh(meshGenerator.generateExtrusion(extrusion));
 
-        cnoid::LinkPtr link = new cnoid::Link();
-        cnoid::SgShapePtr shape = new cnoid::SgShape();
-        cnoid::MeshGenerator::Extrusion extrusion;
-        for(int i=0;i<region.shape.cols();i++){
-          extrusion.crossSection.push_back(region.shape.col(i).head<2>());
+          region.bulletModel = choreonoid_bullet::convertToBulletModel(shape);
+          region.weightR = cnoid::Vector3(1,1,0);
+          environment->smallSurfaces.push_back(region);
+
+          cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
+          material->setTransparency(0);
+          material->setDiffuseColor(cnoid::Vector3f(0.0,0.0,1.0));
+          shape->setMaterial(material);
+          cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
+          posTransform->T() = region.pose;
+          posTransform->addChild(shape);
+          smallSurfaceGroup->addChild(posTransform);
         }
-        extrusion.spine.push_back(cnoid::Vector3(0,0,-0.001));
-        extrusion.spine.push_back(cnoid::Vector3(0,0,0.0));
-        extrusion.orientation.push_back(cnoid::AngleAxis(0, cnoid::Vector3::UnitX()));
-        extrusion.orientation.push_back(cnoid::AngleAxis(0, cnoid::Vector3::UnitX()));
-        extrusion.scale.push_back(cnoid::Vector2(1,1));
-        extrusion.scale.push_back(cnoid::Vector2(1,1));
-        shape->setMesh(meshGenerator.generateExtrusion(extrusion));
-        cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0);
-        material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
-        shape->setMaterial(material);
-        cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
-        posTransform->T() = region.pose;
-        posTransform->addChild(shape);
-        smallSurfaceGroup->addChild(posTransform);
-        graspGroup->addChild(posTransform);
+        {
+          multicontact_locomotion_planner::ContactableRegion region;
+          region.pose.translation() = cnoid::Vector3(0.9,0.0,-0.025 + i*0.3);
+          region.pose.linear() = (cnoid::Matrix3() <<
+                                       0, 0, -1,
+                                       1, 0, 0,
+                                       0, -1, 0).finished();
+          region.shape.resize(3,4);
+          region.shape.col(0) = cnoid::Vector3(+0.48,+0.005,0.0);
+          region.shape.col(1) = cnoid::Vector3(-0.48,+0.005,0.0);
+          region.shape.col(2) = cnoid::Vector3(-0.48,-0.005,0.0);
+          region.shape.col(3) = cnoid::Vector3(+0.48,-0.005,0.0);
 
+          cnoid::SgShapePtr shape = new cnoid::SgShape();
+          cnoid::MeshGenerator::Extrusion extrusion;
+          for(int i=0;i<region.shape.cols();i++){
+            extrusion.crossSection.push_back(region.shape.col(i).head<2>());
+          }
+          extrusion.spine.push_back(cnoid::Vector3(0,0,-0.001));
+          extrusion.spine.push_back(cnoid::Vector3(0,0,0.0));
+          extrusion.orientation.push_back(cnoid::AngleAxis(0, cnoid::Vector3::UnitX()));
+          extrusion.orientation.push_back(cnoid::AngleAxis(0, cnoid::Vector3::UnitX()));
+          extrusion.scale.push_back(cnoid::Vector2(1,1));
+          extrusion.scale.push_back(cnoid::Vector2(1,1));
+          shape->setMesh(meshGenerator.generateExtrusion(extrusion));
+
+          region.bulletModel = choreonoid_bullet::convertToBulletModel(shape);
+          region.weightR = cnoid::Vector3(0,1,1);
+          environment->grasps.push_back(region);
+
+          cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
+          material->setTransparency(0);
+          material->setDiffuseColor(cnoid::Vector3f(0.0,1.0,0.0));
+          shape->setMaterial(material);
+          cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
+          posTransform->T() = region.pose;
+          posTransform->addChild(shape);
+          smallSurfaceGroup->addChild(posTransform);
+          graspGroup->addChild(posTransform);
+
+          region.pose.linear() *= -1;
+          environment->grasps.push_back(region); // X軸反転
+        }
       }
+
+      // bulletModelの原点の位置が違うので, 上とはべつで再度変換する必要がある
+      environment->largeSurfacesBulletModel = choreonoid_bullet::convertToBulletModels(environment->largeSurfacesBody->rootLink()->collisionShape());
+      environment->smallSurfacesBulletModel = choreonoid_bullet::convertToBulletModels(environment->smallSurfacesBody->rootLink()->collisionShape());
+      environment->graspsBulletModel = choreonoid_bullet::convertToBulletModels(environment->graspsBody->rootLink()->collisionShape());
     }
 
 

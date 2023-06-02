@@ -14,7 +14,7 @@
 #include "world_common.h"
 
 namespace multicontact_locomotion_planner_sample{
-  void sample3_desk(){
+  void sample3_desk(){ getchar();
     cnoid::BodyPtr obstacle;
     std::shared_ptr<multicontact_locomotion_planner::Environment> environment;
     generateStepWorld(obstacle, environment);

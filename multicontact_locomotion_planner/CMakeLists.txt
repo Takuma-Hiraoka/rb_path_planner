@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   ik_constraint2_region_cdd
   prioritized_inverse_kinematics_solver2
   choreonoid_viewer
+  bulleteigen
   convex_polyhedron_intersection
   moveit_core
   choreonoid_qhull

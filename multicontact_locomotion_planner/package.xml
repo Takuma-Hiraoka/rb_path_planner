@@ -26,4 +26,5 @@
   <depend>global_inverse_kinematics_solver</depend>
   <depend>rb_rrt_solver</depend>
   <depend>scfr_solver</depend>
+  <depend>bulleteigen</depend>
 </package>

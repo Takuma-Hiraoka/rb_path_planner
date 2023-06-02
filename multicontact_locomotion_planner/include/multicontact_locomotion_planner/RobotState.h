@@ -78,6 +78,7 @@ namespace multicontact_locomotion_planner{
   public:
     cnoid::Position pose = cnoid::Position::Identity();
     Eigen::Matrix<double, 3, Eigen::Dynamic> shape; // pose frame. 3xX [v1, v2, v3 ...] の凸形状
+    std::shared_ptr<btConvexShape> bulletModel;
     cnoid::Vector3 weightR = cnoid::Vector3::Ones(); // pose frame
     /*
       2D surface polygonの場合
@@ -101,10 +102,14 @@ namespace multicontact_locomotion_planner{
                                                                                                                                      );
     std::vector<ContactableRegion> largeSurfaces;
     cnoid::BodyPtr largeSurfacesBody = new cnoid::Body();
+    std::vector<std::shared_ptr<btConvexShape> > largeSurfacesBulletModel; // rootLinkに対応
     std::vector<ContactableRegion> smallSurfaces;
     cnoid::BodyPtr smallSurfacesBody = new cnoid::Body();
+    std::vector<std::shared_ptr<btConvexShape> > smallSurfacesBulletModel; // rootLinkに対応
     std::vector<ContactableRegion> grasps;
     cnoid::BodyPtr graspsBody = new cnoid::Body();
+    std::vector<std::shared_ptr<btConvexShape> > graspsBulletModel; // rootLinkに対応
+
   };
 
   class Mode {
@@ -125,8 +130,7 @@ namespace multicontact_locomotion_planner{
                             bool isLarge,
                             std::vector<std::string>& moveEEF,
                             std::vector<std::string>& newEEF,
-                            std::vector<std::string>& excessContact,
-                            double eps = 0.03);
+                            std::vector<std::string>& excessContact);
   };
 };
 

@@ -74,7 +74,6 @@ namespace multicontact_locomotion_planner_sample{
     param.endEffectors = endEffectors;
     param.modes = modes;
     param.robotIKInfo = robotIKInfo;
-    //param.debugLevel = 3;
     param.debugLevel = 2;
 
     //param.robotIKInfo->pikParam.debugLevel = 2;
@@ -82,7 +81,7 @@ namespace multicontact_locomotion_planner_sample{
     param.rbrrtParam.viewer = viewer;
     param.rbrrtParam.drawLoop = 10; // 1drawに10msくらいかかることに注意
     param.rbrrtParam.maxTranslation = 2.0;
-    param.rbrrtParam.pikParam.debugLevel = 1;
+    //param.rbrrtParam.pikParam.debugLevel = 1;
     param.robotIKInfo->gikParam.threads = 10;
     param.robotIKInfo->gikParam.timeout = 20;
 

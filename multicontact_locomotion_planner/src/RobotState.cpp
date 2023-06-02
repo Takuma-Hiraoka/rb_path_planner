@@ -33,13 +33,23 @@ namespace multicontact_locomotion_planner{
     for(int i=0;i<eefs.size();i++){
       std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = this->reachabilityConstraintsSmall[i];
       std::shared_ptr<EndEffector> endEffector = endEffectors.find(this->eefs[i])->second;
-      const cnoid::BodyPtr& supportBody =
-        (endEffector->environmentType==EndEffector::EnvironmentType::LARGESURFACE) ? environment->largeSurfacesBody :
-        (endEffector->environmentType==EndEffector::EnvironmentType::SMALLSURFACE) ? environment->smallSurfacesBody :
-        environment->graspsBody;
+
+      cnoid::BodyPtr supportBody;
+      std::vector<std::shared_ptr<btConvexShape> > supportBulletModel;
+      if(endEffector->environmentType==EndEffector::EnvironmentType::LARGESURFACE){
+        supportBody = environment->largeSurfacesBody;
+        supportBulletModel = environment->largeSurfacesBulletModel;
+      }else if(endEffector->environmentType==EndEffector::EnvironmentType::SMALLSURFACE){
+        supportBody = environment->smallSurfacesBody;
+        supportBulletModel = environment->smallSurfacesBulletModel;
+      }else{
+        supportBody = environment->graspsBody;
+        supportBulletModel = environment->graspsBulletModel;
+      }
 
       constraint->B_link() = supportBody->rootLink();
-      constraint->B_link_bulletModel() = nullptr; // environmentのbodyは変化するので、キャッシュ削除
+      constraint->B_link_bulletModel() = constraint->B_link();
+      constraint->B_bulletModel() = supportBulletModel;
       constraint->useSingleMeshB() = false; // support polygonを個別にチェック
       choreonoid_cddlib::convertToFACEExpressions(constraint->B_link()->collisionShape(),
                                                   constraint->B_FACE_C(),
@@ -55,8 +65,7 @@ namespace multicontact_locomotion_planner{
                                 bool isLarge,
                                 std::vector<std::string>& moveEEF,
                                 std::vector<std::string>& newEEF,
-                                std::vector<std::string>& excessContact,
-                                double eps){
+                                std::vector<std::string>& excessContact){
     moveEEF.clear();
     newEEF.clear();
     excessContact.clear();
@@ -84,13 +93,10 @@ namespace multicontact_locomotion_planner{
                                                       constraint->B_FACE_dl(),
                                                       constraint->B_FACE_du());
         }
-        double org = constraint->precision();
-        constraint->precision() += eps;
         constraint->updateBounds();
         if(!constraint->isSatisfied()){
           moveEEF.push_back(eefs[i]);
         }
-        constraint->precision() = org;
       }
     }
 

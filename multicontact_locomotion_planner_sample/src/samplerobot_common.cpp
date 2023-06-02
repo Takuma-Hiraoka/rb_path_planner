@@ -1014,7 +1014,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGSTAND");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1031,7 +1031,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGSTANDSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1051,7 +1051,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGSTAND");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1068,7 +1068,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGSTANDSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1088,7 +1088,7 @@ namespace multicontact_locomotion_planner_sample{
         constraint->A_link() = abstractRobot->rootLink();
         constraint->field() = field;
         constraint->tolerance() = 0.06; // ちょうど干渉すると法線ベクトルが変になることがあるので, 1回のiterationで動きうる距離よりも大きくせよ.
-        constraint->precision() = 0.03; // 角で不正確になりがちなので, toleranceを大きくしてprecisionも大きくして、best effort的にする. precisionはdistanceFieldのサイズの倍数より大きくする
+        constraint->precision() = 0.05; // 角で不正確になりがちなので, toleranceを大きくしてprecisionも大きくして、best effort的にする. precisionはdistanceFieldのサイズの倍数より大きくする
         constraint->ignoreDistance() = 0.5; // rbrttは大きく動くので、ignoreも大きくする必要がある
         constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
         mode->rootConstraints.push_back(constraint);
@@ -1107,7 +1107,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGBACK");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1124,7 +1124,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGBACKSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1144,7 +1144,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARMUPPER");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1161,7 +1161,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARMUPPERSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1181,7 +1181,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGBACK");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1198,7 +1198,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGBACKSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1218,7 +1218,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARMUPPER");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1235,7 +1235,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARMUPPERSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1255,7 +1255,7 @@ namespace multicontact_locomotion_planner_sample{
         constraint->A_link() = abstractRobot->rootLink();
         constraint->field() = field;
         constraint->tolerance() = 0.06; // ちょうど干渉すると法線ベクトルが変になることがあるので, 1回のiterationで動きうる距離よりも大きくせよ.
-        constraint->precision() = 0.03; // 角で不正確になりがちなので, toleranceを大きくしてprecisionも大きくして、best effort的にする. precisionはdistanceFieldのサイズの倍数より大きくする
+        constraint->precision() = 0.05; // 角で不正確になりがちなので, toleranceを大きくしてprecisionも大きくして、best effort的にする. precisionはdistanceFieldのサイズの倍数より大きくする
         constraint->ignoreDistance() = 0.5; // rbrttは大きく動くので、ignoreも大きくする必要がある
         constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
         mode->rootConstraints.push_back(constraint);
@@ -1273,7 +1273,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGBACK");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1290,7 +1290,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGBACKSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1310,7 +1310,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARMUPPER");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1327,7 +1327,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARMUPPERSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1347,7 +1347,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGBACK");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1364,7 +1364,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGBACKSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1384,7 +1384,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARMUPPER");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1401,7 +1401,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARMUPPERSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1421,7 +1421,7 @@ namespace multicontact_locomotion_planner_sample{
         constraint->A_link() = abstractRobot->rootLink();
         constraint->field() = field;
         constraint->tolerance() = 0.06; // ちょうど干渉すると法線ベクトルが変になることがあるので, 1回のiterationで動きうる距離よりも大きくせよ.
-        constraint->precision() = 0.03; // 角で不正確になりがちなので, toleranceを大きくしてprecisionも大きくして、best effort的にする. precisionはdistanceFieldのサイズの倍数より大きくする
+        constraint->precision() = 0.05; // 角で不正確になりがちなので, toleranceを大きくしてprecisionも大きくして、best effort的にする. precisionはdistanceFieldのサイズの倍数より大きくする
         constraint->ignoreDistance() = 0.5; // rbrttは大きく動くので、ignoreも大きくする必要がある
         constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
         mode->rootConstraints.push_back(constraint);
@@ -1440,7 +1440,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEG");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1457,7 +1457,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1477,7 +1477,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARM");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1494,7 +1494,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARMSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1514,7 +1514,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEG");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1531,7 +1531,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1551,7 +1551,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARM");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1568,7 +1568,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARMSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1588,7 +1588,7 @@ namespace multicontact_locomotion_planner_sample{
         constraint->A_link() = abstractRobot->rootLink();
         constraint->field() = field;
         constraint->tolerance() = 0.06; // ちょうど干渉すると法線ベクトルが変になることがあるので, 1回のiterationで動きうる距離よりも大きくせよ.
-        constraint->precision() = 0.03; // 角で不正確になりがちなので, toleranceを大きくしてprecisionも大きくして、best effort的にする. precisionはdistanceFieldのサイズの倍数より大きくする
+        constraint->precision() = 0.05; // 角で不正確になりがちなので, toleranceを大きくしてprecisionも大きくして、best effort的にする. precisionはdistanceFieldのサイズの倍数より大きくする
         constraint->ignoreDistance() = 0.5; // rbrttは大きく動くので、ignoreも大きくする必要がある
         constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
         mode->rootConstraints.push_back(constraint);
@@ -1606,7 +1606,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEG");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1623,7 +1623,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("RLEGSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1643,7 +1643,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARM");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1660,7 +1660,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("RARMSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1680,7 +1680,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEG");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1697,7 +1697,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = horizontalRobot->link("LLEGSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1717,7 +1717,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARM");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1734,7 +1734,7 @@ namespace multicontact_locomotion_planner_sample{
           std::shared_ptr<ik_constraint2_bullet::BulletKeepCollisionConstraint> constraint = std::make_shared<ik_constraint2_bullet::BulletKeepCollisionConstraint>();
           constraint->A_link() = abstractRobot->link("LARMSMALL");
           constraint->B_link() = constraint->A_link(); // dummy
-          constraint->precision() = 0.01;
+          constraint->precision() = 0.01; // rbrrtの結果が微妙に誤差があるので、0.01では小さすぎる
           constraint->A_FACE_C().resize(1); constraint->A_FACE_dl().resize(1); constraint->A_FACE_du().resize(1);
           choreonoid_cddlib::convertToFACEExpression(constraint->A_link()->collisionShape(),
                                                      constraint->A_FACE_C()[0],
@@ -1754,7 +1754,7 @@ namespace multicontact_locomotion_planner_sample{
         constraint->A_link() = abstractRobot->rootLink();
         constraint->field() = field;
         constraint->tolerance() = 0.06; // ちょうど干渉すると法線ベクトルが変になることがあるので, 1回のiterationで動きうる距離よりも大きくせよ.
-        constraint->precision() = 0.03; // 角で不正確になりがちなので, toleranceを大きくしてprecisionも大きくして、best effort的にする. precisionはdistanceFieldのサイズの倍数より大きくする
+        constraint->precision() = 0.05; // 角で不正確になりがちなので, toleranceを大きくしてprecisionも大きくして、best effort的にする. precisionはdistanceFieldのサイズの倍数より大きくする
         constraint->ignoreDistance() = 0.5; // rbrttは大きく動くので、ignoreも大きくする必要がある
         constraint->updateBounds(); // キャッシュを内部に作る. キャッシュを作ったあと、10スレッドぶんコピーする方が速い
         mode->rootConstraints.push_back(constraint);
