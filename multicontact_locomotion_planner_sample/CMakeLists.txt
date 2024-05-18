@@ -26,13 +26,6 @@ include_directories(
  ${OMPL_INCLUDE_DIRS}
 )
 
-# 相対パスを絶対パスに直す
-set(CHOREONOID_BODY_LIBRARIES_ABS)
-foreach(lib ${CHOREONOID_BODY_LIBRARIES})
-  find_library(${lib}_abs NAMES ${lib} PATHS ${CHOREONOID_LIBRARY_DIRS})
-  set(CHOREONOID_BODY_LIBRARIES_ABS ${CHOREONOID_BODY_LIBRARIES_ABS} ${${lib}_abs})
-endforeach(lib)
-
 add_library(CnoidMultiContactLocomotionPlannerSamplePlugin SHARED
   src/CnoidMultiContactLocomotionPlannerSamplePlugin.cpp
   src/samplerobot_common.cpp
@@ -45,6 +38,6 @@ add_library(CnoidMultiContactLocomotionPlannerSamplePlugin SHARED
   )
 target_link_libraries(CnoidMultiContactLocomotionPlannerSamplePlugin
   ${catkin_LIBRARIES}
-  ${CHOREONOID_LIBRARIES_ABS}
+  ${CHOREONOID_BODY_PLUGIN_LIBRARIES}
   )
 set_target_properties(CnoidMultiContactLocomotionPlannerSamplePlugin PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CHOREONOID_PLUGIN_DIR})

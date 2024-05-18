@@ -80,12 +80,10 @@ namespace multicontact_locomotion_planner{
         {
           cnoid::MeshGenerator meshGenerator;
           cnoid::LinkPtr tmpLink = new cnoid::Link();
-          tmpLink->setJointType(cnoid::Link::JointType::FIXED_JOINT);
+          tmpLink->setJointType(cnoid::Link::JointType::FixedJoint);
           cnoid::SgShapePtr shape = new cnoid::SgShape();
           shape->setMesh(meshGenerator.generateBox(cnoid::Vector3(0.001,0.001,0.001)));
-          cnoid::SgGroupPtr group = new cnoid::SgGroup();
-          group->addChild(shape);
-          tmpLink->setShape(group);
+          tmpLink->addShapeNode(shape);
           tmpLink->T() = currentContacts.find(eefs[i])->second->link1->T() * currentContacts.find(eefs[i])->second->localPose1;
           constraint->B_link() = tmpLink;
           choreonoid_cddlib::convertToFACEExpressions(constraint->B_link()->collisionShape(),

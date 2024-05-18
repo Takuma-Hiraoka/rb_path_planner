@@ -91,7 +91,7 @@ namespace multicontact_locomotion_planner_sample{
 
 
     std::vector<std::pair<std::vector<double>, std::string> > targetRootPath;
-    cnoid::Position goal = abstractRobot->rootLink()->T();
+    cnoid::Isometry3 goal = abstractRobot->rootLink()->T();
     // goal.translation() += cnoid::Vector3(1.0,0.0,1.5);
     // goal.linear() = cnoid::AngleAxis(M_PI/2, cnoid::Vector3::UnitY()).toRotationMatrix();
     goal.translation() += cnoid::Vector3(1.5,0.0,1.8);

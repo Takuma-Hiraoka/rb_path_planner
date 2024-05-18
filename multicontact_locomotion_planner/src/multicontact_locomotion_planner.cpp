@@ -94,7 +94,7 @@ namespace multicontact_locomotion_planner{
                                   const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& targetConstraints,
                                   const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& bestEffortConstraints,
                                   const cnoid::LinkPtr& projectLink,
-                                  const cnoid::Position& projectLocalPose,
+                                  const cnoid::Isometry3& projectLocalPose,
                                   std::shared_ptr<std::vector<std::vector<double> > >& path
                                   ){
 
@@ -161,7 +161,7 @@ namespace multicontact_locomotion_planner{
   }
 
   void RobotIKInfo::updateCOMConstraint(const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts, std::shared_ptr<ik_constraint2::COMConstraint>& constraint){
-    std::vector<cnoid::Position> poses;
+    std::vector<cnoid::Isometry3> poses;
     std::vector<Eigen::SparseMatrix<double,Eigen::RowMajor> > As;
     std::vector<cnoid::VectorX> bs;
     std::vector<Eigen::SparseMatrix<double,Eigen::RowMajor> > Cs;
@@ -794,7 +794,7 @@ namespace multicontact_locomotion_planner{
 
   bool solveRBRRT(const std::shared_ptr<Environment>& environment,
                   const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
-                  const cnoid::Position goal,
+                  const cnoid::Isometry3 goal,
                   const MLPParam& param,
                   std::vector<std::pair<std::vector<double>, std::string> >& outputRootPath // angle, mode
                   ){
@@ -886,7 +886,7 @@ namespace multicontact_locomotion_planner{
 
     std::vector<double> goals;
     {
-      cnoid::Position org = param.abstractRobot->rootLink()->T();
+      cnoid::Isometry3 org = param.abstractRobot->rootLink()->T();
       param.abstractRobot->rootLink()->T() = goal;
       param.horizontalRobot->rootLink()->T() = orientCoordToAxis(param.abstractRobot->rootLink()->T(), cnoid::Vector3::UnitZ(), cnoid::Vector3::UnitZ());
       link2Frame(variables, goals);

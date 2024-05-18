@@ -227,8 +227,8 @@ namespace multicontact_locomotion_planner{
     }
   }
 
-  Eigen::Transform<double, 3, Eigen::AffineCompact> orientCoordToAxis(const Eigen::Transform<double, 3, Eigen::AffineCompact>& m, const Eigen::Vector3d& axis, const Eigen::Vector3d& localaxis){
-    Eigen::Transform<double, 3, Eigen::AffineCompact> ret = m;
+  Eigen::Isometry3d orientCoordToAxis(const Eigen::Isometry3d& m, const Eigen::Vector3d& axis, const Eigen::Vector3d& localaxis){
+    Eigen::Isometry3d ret = m;
     ret.linear() = orientCoordToAxis(ret.linear(), axis, localaxis);
     return ret;
   }

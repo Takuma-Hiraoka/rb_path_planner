@@ -13,7 +13,6 @@ namespace multicontact_locomotion_planner_sample{
     {
       cnoid::LinkPtr rootLink = new cnoid::Link();
       {
-        cnoid::SgGroupPtr group = new cnoid::SgGroup();
         {
           cnoid::SgShapePtr shape = new cnoid::SgShape();
           shape->setMesh(meshGenerator.generateBox(cnoid::Vector3(4,2,0.1)));
@@ -23,7 +22,7 @@ namespace multicontact_locomotion_planner_sample{
           cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
           posTransform->translation() = cnoid::Vector3(0,0,-0.05);
           posTransform->addChild(shape);
-          group->addChild(posTransform);
+          rootLink->addShapeNode(posTransform);
         }
         {
           cnoid::SgShapePtr shape = new cnoid::SgShape();
@@ -34,9 +33,8 @@ namespace multicontact_locomotion_planner_sample{
           cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
           posTransform->translation() = cnoid::Vector3(1.5,0,0.35);
           posTransform->addChild(shape);
-          group->addChild(posTransform);
+          rootLink->addShapeNode(posTransform);
         }
-        rootLink->setShape(group);
       }
       obstacle->setRootLink(rootLink);
     }
@@ -67,14 +65,8 @@ namespace multicontact_locomotion_planner_sample{
     {
       // Support polygon
       // 厚みをもたせて3D形状とせずに、2Dpolygonのままで扱ったほうが、IKの制約がコンパクトになるので速い
-      cnoid::SgGroupPtr largeSurfaceGroup = new cnoid::SgGroup();
-      environment->largeSurfacesBody->rootLink()->setShape(largeSurfaceGroup);
       environment->largeSurfacesBody->setRootLink(environment->largeSurfacesBody->rootLink());
-      cnoid::SgGroupPtr smallSurfaceGroup = new cnoid::SgGroup();
-      environment->smallSurfacesBody->rootLink()->setShape(smallSurfaceGroup);
       environment->smallSurfacesBody->setRootLink(environment->smallSurfacesBody->rootLink());
-      cnoid::SgGroupPtr graspGroup = new cnoid::SgGroup();
-      environment->graspsBody->rootLink()->setShape(graspGroup);
       environment->graspsBody->setRootLink(environment->graspsBody->rootLink());
       {
         multicontact_locomotion_planner::ContactableRegion region;
@@ -109,7 +101,7 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->T() = region.pose;
         posTransform->addChild(shape);
-        largeSurfaceGroup->addChild(posTransform);
+        environment->largeSurfacesBody->rootLink()->addShapeNode(posTransform);
 
       }
       {
@@ -145,7 +137,7 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->T() = region.pose;
         posTransform->addChild(shape);
-        smallSurfaceGroup->addChild(posTransform);
+        environment->smallSurfacesBody->rootLink()->addShapeNode(posTransform);
 
       }
       {
@@ -181,7 +173,7 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->T() = region.pose;
         posTransform->addChild(shape);
-        largeSurfaceGroup->addChild(posTransform);
+        environment->largeSurfacesBody->rootLink()->addShapeNode(posTransform);
 
       }
       {
@@ -217,7 +209,7 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->T() = region.pose;
         posTransform->addChild(shape);
-        smallSurfaceGroup->addChild(posTransform);
+        environment->smallSurfacesBody->rootLink()->addShapeNode(posTransform);
 
       }
 
@@ -238,7 +230,6 @@ namespace multicontact_locomotion_planner_sample{
     {
       cnoid::LinkPtr rootLink = new cnoid::Link();
       {
-        cnoid::SgGroupPtr group = new cnoid::SgGroup();
         {
           cnoid::SgShapePtr shape = new cnoid::SgShape();
           shape->setMesh(meshGenerator.generateBox(cnoid::Vector3(4,2,0.1)));
@@ -248,7 +239,7 @@ namespace multicontact_locomotion_planner_sample{
           cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
           posTransform->translation() = cnoid::Vector3(0,0,-0.05);
           posTransform->addChild(shape);
-          group->addChild(posTransform);
+          rootLink->addShapeNode(posTransform);
         }
         {
           cnoid::SgShapePtr shape = new cnoid::SgShape();
@@ -259,7 +250,7 @@ namespace multicontact_locomotion_planner_sample{
           cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
           posTransform->translation() = cnoid::Vector3(1.5,0,1.8-0.05);
           posTransform->addChild(shape);
-          group->addChild(posTransform);
+          rootLink->addShapeNode(posTransform);
         }
         for(int i=1;i<7;i++){
           cnoid::SgShapePtr shape = new cnoid::SgShape();
@@ -270,9 +261,8 @@ namespace multicontact_locomotion_planner_sample{
           cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
           posTransform->translation() = cnoid::Vector3(0.9,0,-0.025+i*0.3);
           posTransform->addChild(shape);
-          group->addChild(posTransform);
+          rootLink->addShapeNode(posTransform);
         }
-        rootLink->setShape(group);
       }
       obstacle->setRootLink(rootLink);
     }
@@ -303,14 +293,8 @@ namespace multicontact_locomotion_planner_sample{
     {
       // Support polygon
       // 厚みをもたせて3D形状とせずに、2Dpolygonのままで扱ったほうが、IKの制約がコンパクトになるので速い
-      cnoid::SgGroupPtr largeSurfaceGroup = new cnoid::SgGroup();
-      environment->largeSurfacesBody->rootLink()->setShape(largeSurfaceGroup);
       environment->largeSurfacesBody->setRootLink(environment->largeSurfacesBody->rootLink());
-      cnoid::SgGroupPtr smallSurfaceGroup = new cnoid::SgGroup();
-      environment->smallSurfacesBody->rootLink()->setShape(smallSurfaceGroup);
       environment->smallSurfacesBody->setRootLink(environment->smallSurfacesBody->rootLink());
-      cnoid::SgGroupPtr graspGroup = new cnoid::SgGroup();
-      environment->graspsBody->rootLink()->setShape(graspGroup);
       environment->graspsBody->setRootLink(environment->graspsBody->rootLink());
       {
         multicontact_locomotion_planner::ContactableRegion region;
@@ -345,7 +329,7 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->T() = region.pose;
         posTransform->addChild(shape);
-        largeSurfaceGroup->addChild(posTransform);
+        environment->largeSurfacesBody->rootLink()->addShapeNode(posTransform);
       }
       {
         multicontact_locomotion_planner::ContactableRegion region;
@@ -380,7 +364,7 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->T() = region.pose;
         posTransform->addChild(shape);
-        smallSurfaceGroup->addChild(posTransform);
+        environment->smallSurfacesBody->rootLink()->addShapeNode(posTransform);
       }
       {
         multicontact_locomotion_planner::ContactableRegion region;
@@ -415,7 +399,7 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->T() = region.pose;
         posTransform->addChild(shape);
-        largeSurfaceGroup->addChild(posTransform);
+        environment->largeSurfacesBody->rootLink()->addShapeNode(posTransform);
       }
       {
         multicontact_locomotion_planner::ContactableRegion region;
@@ -450,7 +434,7 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->T() = region.pose;
         posTransform->addChild(shape);
-        smallSurfaceGroup->addChild(posTransform);
+        environment->smallSurfacesBody->rootLink()->addShapeNode(posTransform);
       }
       for(int i=1;i<7;i++){
         {
@@ -486,7 +470,7 @@ namespace multicontact_locomotion_planner_sample{
           cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
           posTransform->T() = region.pose;
           posTransform->addChild(shape);
-          smallSurfaceGroup->addChild(posTransform);
+          environment->smallSurfacesBody->rootLink()->addShapeNode(posTransform);
         }
         {
           multicontact_locomotion_planner::ContactableRegion region;
@@ -525,8 +509,8 @@ namespace multicontact_locomotion_planner_sample{
           cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
           posTransform->T() = region.pose;
           posTransform->addChild(shape);
-          smallSurfaceGroup->addChild(posTransform);
-          graspGroup->addChild(posTransform);
+          environment->smallSurfacesBody->rootLink()->addShapeNode(posTransform);
+          environment->graspsBody->rootLink()->addShapeNode(posTransform);
 
           region.pose.linear() *= -1;
           environment->grasps.push_back(region); // X軸反転

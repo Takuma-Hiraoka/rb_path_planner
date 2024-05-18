@@ -6,25 +6,26 @@
 - git:
     local-name: ik_solvers2
     uri: https://github.com/Naoki-Hiraoka/ik_solvers2.git
-    version: 1.0
+    version: 2.0
 - git:
-    local-name: choreonoid_viewer
-    uri: https://github.com/Naoki-Hiraoka/choreonoid_viewer.git
+    local-name: choreonoid_viewer2
+    uri: https://github.com/Naoki-Hiraoka/choreonoid_viewer2.git
+    version: 2.0
 
-- git:
-    local-name: convex_polyhedron_intersection
-    uri: https://github.com/Naoki-Hiraoka/convex_polyhedron_intersection.git
 - git:
     local-name: cddeigen
     uri: https://github.com/Naoki-Hiraoka/cddeigen
 
 - git:
-    local-name: choreonoid_qhull
-    uri: https://github.com/Naoki-Hiraoka/choreonoid_qhull.git
+    local-name: choreonoid_qhull2
+    uri: https://github.com/Naoki-Hiraoka/choreonoid_qhull2.git
+    version: 2.0
 
 - git:
     local-name: lp_solvers
     uri: https://github.com/Naoki-Hiraoka/lp_solvers.git
+    version: 1.0
 - git:
     local-name: static_equilibuim_test
     uri: https://github.com/Naoki-Hiraoka/static_equilibuim_test.git
+    version: 1.0

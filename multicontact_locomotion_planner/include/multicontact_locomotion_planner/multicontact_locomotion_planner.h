@@ -57,7 +57,7 @@ namespace multicontact_locomotion_planner{
                        const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& targetConstraints,
                        const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& bestEffortConstraints,
                        const cnoid::LinkPtr& projectLink,
-                       const cnoid::Position& projectLocalPose,
+                       const cnoid::Isometry3& projectLocalPose,
                        std::shared_ptr<std::vector<std::vector<double> > >& path
                        );
 
@@ -114,7 +114,7 @@ namespace multicontact_locomotion_planner{
 
   bool solveRBRRT(const std::shared_ptr<Environment>& environment,
                   const std::unordered_map<std::string, std::shared_ptr<Contact> >& currentContacts,
-                  const cnoid::Position goal,
+                  const cnoid::Isometry3 goal,
                   const MLPParam& param,
                   std::vector<std::pair<std::vector<double>, std::string> >& outputRootPath // angle, mode
                   );
