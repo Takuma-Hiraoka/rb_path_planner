@@ -98,7 +98,8 @@ namespace multicontact_locomotion_planner_sample{
           shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
+        //material->setTransparency(0.8);
+        material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
@@ -127,7 +128,8 @@ namespace multicontact_locomotion_planner_sample{
           shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
+        //material->setTransparency(0.8);
+        material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
@@ -157,6 +159,8 @@ namespace multicontact_locomotion_planner_sample{
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0.8);
+        material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
+        //material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
@@ -186,6 +190,8 @@ namespace multicontact_locomotion_planner_sample{
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0.8);
+        material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
+        //material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
@@ -214,7 +220,8 @@ namespace multicontact_locomotion_planner_sample{
           shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
+        //material->setTransparency(0.8);
+        material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
@@ -243,7 +250,8 @@ namespace multicontact_locomotion_planner_sample{
           shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
+        //material->setTransparency(0.8);
+        material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
@@ -273,6 +281,8 @@ namespace multicontact_locomotion_planner_sample{
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0.8);
+        material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
+        //material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
@@ -302,6 +312,8 @@ namespace multicontact_locomotion_planner_sample{
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0.8);
+        material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
+        //material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.3,0,0.1);
@@ -310,6 +322,7 @@ namespace multicontact_locomotion_planner_sample{
         group->addChild(posTransform);
         larmLink->setShape(group);
       }
+
       abstractRobot->setRootLink(rootLink);
     }
     abstractRobot->rootLink()->T() = robot->rootLink()->T();
@@ -331,7 +344,8 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape = new cnoid::SgShape();
         shape->setMesh(meshGenerator.generateCylinder(0.15/*radius*/, 0.4/*height*/));
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
+        //material->setTransparency(0.8);
+        material->setTransparency(1.0);
         material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
@@ -351,7 +365,8 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape = new cnoid::SgShape();
         shape->setMesh(meshGenerator.generateCylinder(0.1/*radius*/, 0.2/*height*/));
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
+        //material->setTransparency(0.8);
+        material->setTransparency(1.0);
         material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
@@ -371,7 +386,8 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape = new cnoid::SgShape();
         shape->setMesh(meshGenerator.generateCylinder(0.15/*radius*/, 0.4/*height*/));
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
+        //material->setTransparency(0.8);
+        material->setTransparency(1.0);
         material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
@@ -391,7 +407,8 @@ namespace multicontact_locomotion_planner_sample{
         cnoid::SgShapePtr shape = new cnoid::SgShape();
         shape->setMesh(meshGenerator.generateCylinder(0.1/*radius*/, 0.2/*height*/));
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
+        //material->setTransparency(0.8);
+        material->setTransparency(1.0);
         material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
@@ -423,6 +440,8 @@ namespace multicontact_locomotion_planner_sample{
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0.8);
+        material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
+        //material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
@@ -453,6 +472,8 @@ namespace multicontact_locomotion_planner_sample{
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0.8);
+        material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
+        //material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
@@ -483,6 +504,8 @@ namespace multicontact_locomotion_planner_sample{
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0.8);
+        material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
+        //material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
@@ -513,6 +536,8 @@ namespace multicontact_locomotion_planner_sample{
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
         material->setTransparency(0.8);
+        material->setDiffuseColor(cnoid::Vector3f(1.0,0.0,0.0));
+        //material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
@@ -542,7 +567,8 @@ namespace multicontact_locomotion_planner_sample{
           shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
+        //material->setTransparency(0.8);
+        material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
@@ -572,7 +598,8 @@ namespace multicontact_locomotion_planner_sample{
           shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
+        //material->setTransparency(0.8);
+        material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
@@ -602,7 +629,8 @@ namespace multicontact_locomotion_planner_sample{
           shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
+        //material->setTransparency(0.8);
+        material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);
@@ -632,7 +660,8 @@ namespace multicontact_locomotion_planner_sample{
           shape = choreonoid_qhull::generateMeshFromConvexHull(intersection);
         }
         cnoid::SgMaterialPtr material = new cnoid::SgMaterial();
-        material->setTransparency(0.8);
+        //material->setTransparency(0.8);
+        material->setTransparency(1.0);
         shape->setMaterial(material);
         cnoid::SgPosTransformPtr posTransform = new cnoid::SgPosTransform();
         posTransform->translation() = cnoid::Vector3(0.2,0,-0.4);

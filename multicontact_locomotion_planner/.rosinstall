@@ -6,6 +6,7 @@
 - git:
     local-name: ik_solvers2
     uri: https://github.com/Naoki-Hiraoka/ik_solvers2.git
+    version: 1.0
 - git:
     local-name: choreonoid_viewer
     uri: https://github.com/Naoki-Hiraoka/choreonoid_viewer.git

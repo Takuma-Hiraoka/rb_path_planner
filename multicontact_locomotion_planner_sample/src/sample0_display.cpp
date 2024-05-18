@@ -66,17 +66,23 @@ namespace multicontact_locomotion_planner_sample{
     viewer->objects(robot);
     viewer->objects(abstractRobot);
     viewer->objects(horizontalRobot);
-    viewer->objects(obstacle);
-    viewer->objects(environment->largeSurfacesBody);
-    viewer->objects(environment->smallSurfacesBody);
-    viewer->objects(environment->graspsBody);
+    //viewer->objects(obstacle);
+    //viewer->objects(environment->largeSurfacesBody);
+    //viewer->objects(environment->smallSurfacesBody);
+    //viewer->objects(environment->graspsBody);
 
+    robot->rootLink()->R() = cnoid::AngleAxis(M_PI/2, cnoid::Vector3::UnitY()) * robot->rootLink()->R();
+    robot->link("RARM_SHOULDER_P")->q() -= M_PI/2;
+    robot->link("LARM_SHOULDER_P")->q() -= M_PI/2;
+    robot->link("RLEG_HIP_P")->q() -= M_PI/2;
+    robot->link("LLEG_HIP_P")->q() -= M_PI/2;
+    robot->calcForwardKinematics(false);
     abstractRobot->rootLink()->R() = cnoid::AngleAxis(M_PI/2, cnoid::Vector3::UnitY()) * abstractRobot->rootLink()->R();
-            abstractRobot->calcForwardKinematics(false);
-        abstractRobot->calcCenterOfMass();
-        multicontact_locomotion_planner::calcHorizontal(horizontals);
-        horizontalRobot->calcForwardKinematics(false);
-        horizontalRobot->calcCenterOfMass();
+    abstractRobot->calcForwardKinematics(false);
+    abstractRobot->calcCenterOfMass();
+    multicontact_locomotion_planner::calcHorizontal(horizontals);
+    horizontalRobot->calcForwardKinematics(false);
+    horizontalRobot->calcCenterOfMass();
 
 
     viewer->drawObjects();
