@@ -29,3 +29,8 @@
     local-name: static_equilibuim_test
     uri: https://github.com/Naoki-Hiraoka/static_equilibuim_test.git
     version: 1.0
+
+- git:
+    local-name: moveit_extensions
+    uri: https://github.com/Naoki-Hiraoka/moveit_extensions.git
+    version: 1.0

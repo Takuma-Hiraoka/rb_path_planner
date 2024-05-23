@@ -7,7 +7,6 @@
 #include <unordered_set>
 #include <Eigen/Eigen>
 #include <ik_constraint2_distance_field/ik_constraint2_distance_field.h>
-#include <moveit/distance_field/propagation_distance_field.h>
 #include <cnoid/Body>
 #include <ik_constraint2/ik_constraint2.h>
 #include <ik_constraint2_vclip/ik_constraint2_vclip.h>
@@ -89,16 +88,16 @@ namespace multicontact_locomotion_planner{
 
   class Environment {
   public:
-    std::shared_ptr<distance_field::PropagationDistanceField> obstacles = std::make_shared<distance_field::PropagationDistanceField>(5,//size_x
-                                                                                                                                     5,//size_y
-                                                                                                                                     5,//size_z
-                                                                                                                                     0.04,//resolution
-                                                                                                                                     -2.5,//origin_x
-                                                                                                                                     -2.5,//origin_y
-                                                                                                                                     -2.5,//origin_z
-                                                                                                                                     0.5, // max_distance
-                                                                                                                                     false// propagate_negative_distances
-                                                                                                                                     );
+    std::shared_ptr<moveit_extensions::InterpolatedPropagationDistanceField> obstacles = std::make_shared<moveit_extensions::InterpolatedPropagationDistanceField>(5,//size_x
+                                                                                                                                                                   5,//size_y
+                                                                                                                                                                   5,//size_z
+                                                                                                                                                                   0.04,//resolution
+                                                                                                                                                                   -2.5,//origin_x
+                                                                                                                                                                   -2.5,//origin_y
+                                                                                                                                                                   -2.5,//origin_z
+                                                                                                                                                                   0.5, // max_distance
+                                                                                                                                                                   false// propagate_negative_distances
+                                                                                                                                                                   );
     std::vector<ContactableRegion> largeSurfaces;
     cnoid::BodyPtr largeSurfacesBody = new cnoid::Body();
     std::vector<std::shared_ptr<btConvexShape> > largeSurfacesBulletModel; // rootLinkに対応

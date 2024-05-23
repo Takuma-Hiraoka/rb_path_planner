@@ -6,7 +6,7 @@
 
 namespace multicontact_locomotion_planner_sample{
 
-  void generateSampleRobot(const std::shared_ptr<distance_field::PropagationDistanceField>& field,
+  void generateSampleRobot(const std::shared_ptr<moveit_extensions::InterpolatedPropagationDistanceField>& field,
                            cnoid::BodyPtr& robot,
                            cnoid::BodyPtr& abstractRobot,
                            cnoid::BodyPtr& horizontalRobot,

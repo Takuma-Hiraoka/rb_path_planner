@@ -42,16 +42,16 @@ namespace multicontact_locomotion_planner_sample{
     environment = std::make_shared<multicontact_locomotion_planner::Environment>();
     {
       // collision world
-      environment->obstacles = std::make_shared<distance_field::PropagationDistanceField>(5,//size_x
-                                                                                          5,//size_y
-                                                                                          5,//size_z
-                                                                                          0.02,//resolution // constratintのtoleranceよりも小さい必要がある.
-                                                                                          -2.5,//origin_x
-                                                                                          -2.5,//origin_y
-                                                                                          -2.5,//origin_z
-                                                                                          0.5, // max_distance
-                                                                                          true// propagate_negative_distances
-                                                                                          );
+      environment->obstacles = std::make_shared<moveit_extensions::InterpolatedPropagationDistanceField>(5,//size_x
+                                                                                                         5,//size_y
+                                                                                                         5,//size_z
+                                                                                                         0.02,//resolution // constratintのtoleranceよりも小さい必要がある.
+                                                                                                         -2.5,//origin_x
+                                                                                                         -2.5,//origin_y
+                                                                                                         -2.5,//origin_z
+                                                                                                         0.5, // max_distance
+                                                                                                         true// propagate_negative_distances
+                                                                                                         );
       EigenSTL::vector_Vector3d vertices;
       for(int i=0;i<obstacle->numLinks();i++){
         std::vector<Eigen::Vector3f> vertices_ = ik_constraint2_distance_field::getSurfaceVertices(obstacle->link(i), 0.01);
@@ -270,16 +270,16 @@ namespace multicontact_locomotion_planner_sample{
     environment = std::make_shared<multicontact_locomotion_planner::Environment>();
     {
       // collision world
-      environment->obstacles = std::make_shared<distance_field::PropagationDistanceField>(5,//size_x
-                                                                                          5,//size_y
-                                                                                          5,//size_z
-                                                                                          0.02,//resolution // constratintのtoleranceよりも小さい必要がある.
-                                                                                          -2.5,//origin_x
-                                                                                          -2.5,//origin_y
-                                                                                          -2.5,//origin_z
-                                                                                          0.5, // max_distance
-                                                                                          false// propagate_negative_distances
-                                                                                          );
+      environment->obstacles = std::make_shared<moveit_extensions::InterpolatedPropagationDistanceField>(5,//size_x
+                                                                                                         5,//size_y
+                                                                                                         5,//size_z
+                                                                                                         0.02,//resolution // constratintのtoleranceよりも小さい必要がある.
+                                                                                                         -2.5,//origin_x
+                                                                                                         -2.5,//origin_y
+                                                                                                         -2.5,//origin_z
+                                                                                                         0.5, // max_distance
+                                                                                                         false// propagate_negative_distances
+                                                                                                         );
       EigenSTL::vector_Vector3d vertices;
       for(int i=0;i<obstacle->numLinks();i++){
         std::vector<Eigen::Vector3f> vertices_ = ik_constraint2_distance_field::getSurfaceVertices(obstacle->link(i), 0.01);
