@@ -17,8 +17,8 @@
     uri: https://github.com/Naoki-Hiraoka/cddeigen
 
 - git:
-    local-name: choreonoid_qhull2
-    uri: https://github.com/Naoki-Hiraoka/choreonoid_qhull2.git
+    local-name: choreonoid_collision_tools2
+    uri: https://github.com/Naoki-Hiraoka/choreonoid_collision_tools2.git
     version: 2.0
 
 - git:
